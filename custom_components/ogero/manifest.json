@@ -2,7 +2,7 @@
   "domain": "ogero",
   "name": "Ogero",
   "codeowners": [
-    "@ludeeus"
+    "@oraad"
   ],
   "config_flow": true,
   "documentation": "https://github.com/oraad/ha-ogero",
