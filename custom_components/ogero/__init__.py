@@ -1,7 +1,7 @@
-"""Custom integration to integrate integration_blueprint with Home Assistant.
+"""Custom integration to integrate Ogero Telekom with Home Assistant.
 
 For more details about this integration, please refer to
-https://github.com/ludeeus/integration_blueprint
+https://github.com/oraad/ha-ogero
 """
 from __future__ import annotations
 
@@ -10,24 +10,26 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import IntegrationBlueprintApiClient
+from .api import OgeroApiClient, Account
 from .const import DOMAIN
-from .coordinator import BlueprintDataUpdateCoordinator
+from .coordinator import OgeroDataUpdateCoordinator
 
-PLATFORMS: list[Platform] = [
-    Platform.SENSOR,
-    Platform.BINARY_SENSOR,
-    Platform.SWITCH,
-]
+PLATFORMS: list[Platform] = [Platform.SENSOR]
+
+ACCOUNT = "account"
 
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = coordinator = BlueprintDataUpdateCoordinator(
+
+    account = Account.deserialize(entry.data[ACCOUNT])
+
+    hass.data[DOMAIN][entry.entry_id] = coordinator = OgeroDataUpdateCoordinator(
         hass=hass,
-        client=IntegrationBlueprintApiClient(
+        account=account,
+        client=OgeroApiClient(
             username=entry.data[CONF_USERNAME],
             password=entry.data[CONF_PASSWORD],
             session=async_get_clientsession(hass),

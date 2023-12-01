@@ -1,5 +1,5 @@
 {
-    "name": "ludeeus/integration_blueprint",
+    "name": "HA Ogero",
     "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [
@@ -24,7 +24,6 @@
                 "editor.tabSize": 4,
                 "python.pythonPath": "/usr/bin/python3",
                 "python.analysis.autoSearchPaths": false,
-                "python.linting.pylintEnabled": true,
                 "python.linting.enabled": true,
                 "python.formatting.provider": "black",
                 "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
@@ -37,6 +36,8 @@
     },
     "remoteUser": "vscode",
     "features": {
-        "ghcr.io/devcontainers/features/rust:1": {}
+        "ghcr.io/devcontainers/features/rust:1": {},
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+        "ghcr.io/devcontainers/features/node:1": {}
     }
 }
