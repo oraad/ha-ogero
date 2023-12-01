@@ -30,45 +30,47 @@ ENTITY_DESCRIPTIONS = (
         key=QUOTA,
         name=QUOTA,
         native_unit_of_measurement="GB",
-        suggested_display_precision=0
-        # icon="mdi:format-quote-close",
+        suggested_display_precision=0,
+        icon="mdi:format-quote-close",
     ),
     SensorEntityDescription(
         key=SPEED,
         name=SPEED,
-        # device_class=SensorDeviceClass
-        # icon="mdi:format-quote-close",
+        icon="mdi:speedometer",
     ),
     SensorEntityDescription(
         key=DOWNLOAD,
         name=DOWNLOAD,
         native_unit_of_measurement="GB",
-        suggested_display_precision=1
-        # icon="mdi:format-quote-close",
+        suggested_display_precision=1,
+        icon="mdi:download",
     ),
     SensorEntityDescription(
         key=UPLOAD,
         name=UPLOAD,
         native_unit_of_measurement="GB",
-        suggested_display_precision=1
-        # icon="mdi:format-quote-close",
+        suggested_display_precision=1,
+        icon="mdi:upload",
     ),
     SensorEntityDescription(
         key=TOTAL_CONSUMPTION,
         name=TOTAL_CONSUMPTION,
         native_unit_of_measurement="GB",
-        suggested_display_precision=1
-        # icon="mdi:format-quote-close",
+        suggested_display_precision=1,
+        icon="mdi:sigma",
     ),
     SensorEntityDescription(
         key=EXTRA_CONSUMPTION,
         name=EXTRA_CONSUMPTION,
         native_unit_of_measurement="GB",
-        suggested_display_precision=1
-        # icon="mdi:format-quote-close",
+        suggested_display_precision=1,
+        icon="mdi:alert",
     ),
     SensorEntityDescription(
-        key=LAST_UPDATE, name=LAST_UPDATE, device_class=SensorDeviceClass.TIMESTAMP
+        key=LAST_UPDATE,
+        name=LAST_UPDATE,
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:update",
     ),
 )
 
