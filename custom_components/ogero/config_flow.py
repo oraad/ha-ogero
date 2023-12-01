@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import voluptuous as vol
-from homeassistant import config_entries
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, FlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.selector import (
@@ -18,13 +19,22 @@ from .api import (
     OgeroApiClientAuthenticationError,
     OgeroApiClientCommunicationError,
     OgeroApiClientError,
+    Account,
 )
 from .const import DOMAIN, LOGGER
 
 ACCOUNT = "account"
 
+@callback
+def configured_instances(hass: HomeAssistant) -> set[str]:
+    """Return a set of configured instances."""
+    entries = []
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        entries.append(entry.data.get(ACCOUNT))
+    return set(entries)
 
-class OgeroFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+
+class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):
     """Config flow for Ogero."""
 
     VERSION = 1
@@ -35,7 +45,7 @@ class OgeroFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
@@ -82,14 +92,21 @@ class OgeroFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_account(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> FlowResult:
         """Handle a flow initialized by the user."""
         _errors = {}
         if user_input is not None:
-            return self.async_create_entry(
-                title=self._user_data[CONF_USERNAME],
-                data={**self._user_data, **user_input},
-            )
+            is_predefined = user_input[ACCOUNT] in configured_instances(self.hass)
+
+            if is_predefined:
+                _errors[ACCOUNT] = "account_already_configured"
+
+            if len(_errors) == 0:
+                account = Account.deserialize(user_input[ACCOUNT])
+                return self.async_create_entry(
+                    title=str(account),
+                    data={**self._user_data, **user_input},
+                )
 
         accounts = await self._get_accounts("", "")
 
