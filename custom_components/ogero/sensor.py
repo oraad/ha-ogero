@@ -28,47 +28,47 @@ OUTSTANDING_BALANCE = "outstanding_balance"
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key=QUOTA,
-        name=QUOTA,
+        translation_key=QUOTA,
         native_unit_of_measurement="GB",
         suggested_display_precision=0,
         icon="mdi:format-quote-close",
     ),
     SensorEntityDescription(
         key=SPEED,
-        name=SPEED,
+        translation_key=SPEED,
         icon="mdi:speedometer",
     ),
     SensorEntityDescription(
         key=DOWNLOAD,
-        name=DOWNLOAD,
+        translation_key=DOWNLOAD,
         native_unit_of_measurement="GB",
         suggested_display_precision=1,
         icon="mdi:download",
     ),
     SensorEntityDescription(
         key=UPLOAD,
-        name=UPLOAD,
+        translation_key=UPLOAD,
         native_unit_of_measurement="GB",
         suggested_display_precision=1,
         icon="mdi:upload",
     ),
     SensorEntityDescription(
         key=TOTAL_CONSUMPTION,
-        name=TOTAL_CONSUMPTION,
+        translation_key=TOTAL_CONSUMPTION,
         native_unit_of_measurement="GB",
         suggested_display_precision=1,
         icon="mdi:sigma",
     ),
     SensorEntityDescription(
         key=EXTRA_CONSUMPTION,
-        name=EXTRA_CONSUMPTION,
+        translation_key=EXTRA_CONSUMPTION,
         native_unit_of_measurement="GB",
         suggested_display_precision=1,
         icon="mdi:alert",
     ),
     SensorEntityDescription(
         key=LAST_UPDATE,
-        name=LAST_UPDATE,
+        translation_key=LAST_UPDATE,
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:update",
     ),
@@ -77,7 +77,7 @@ ENTITY_DESCRIPTIONS = (
 EXTENDED_ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key=OUTSTANDING_BALANCE,
-        name=OUTSTANDING_BALANCE,
+        translation_key=OUTSTANDING_BALANCE,
         device_class=SensorDeviceClass.MONETARY,
         native_unit_of_measurement="LBP",
     ),
@@ -140,13 +140,3 @@ class ExtendedOgeroSensor(OgeroSensor):
             self._attr_extra_state_attributes[key] = value
 
         return self.coordinator.data.get(self.entity_description.key)
-
-    # async def async_update(self):
-    #     attributes = self.coordinator.data.get("state_attributes").get(
-    #         self.entity_description.key
-    #     )
-
-    #     for attribute in attributes:
-    #         key, value = attribute
-    #         LOGGER.debug("attribute key: %s, value: %s", key, value)
-    #         self._attr_extra_state_attributes[key] = value
