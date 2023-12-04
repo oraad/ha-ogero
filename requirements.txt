@@ -3,4 +3,4 @@ homeassistant==2023.11.3
 pip>=21.0,<23.4
 ruff==0.1.6
 pyogero==0.6.0
-urllib3==1.26.16
+urllib3==2.1.0
