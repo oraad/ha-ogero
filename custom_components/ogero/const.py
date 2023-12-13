@@ -5,5 +5,5 @@ LOGGER: Logger = getLogger(__package__)
 
 NAME = "Ogero"
 DOMAIN = "ogero"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 ATTRIBUTION = "Data retrieved from https://ogero.gov.lb/"

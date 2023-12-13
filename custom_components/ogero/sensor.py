@@ -80,6 +80,7 @@ EXTENDED_ENTITY_DESCRIPTIONS = (
         translation_key=OUTSTANDING_BALANCE,
         device_class=SensorDeviceClass.MONETARY,
         native_unit_of_measurement="LBP",
+        suggested_display_precision=0
     ),
 )
 

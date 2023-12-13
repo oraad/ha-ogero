@@ -79,7 +79,7 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
                     bills_history.append(
                         (
                             bill.date.strftime("%Y-%m"),
-                            f"{bill.amount.currency} {bill.amount.amount} ({bill.status.name})",
+                            f"{bill.amount.currency} {int(bill.amount.amount)} ({bill.status.name})",
                         )
                     )
 
@@ -91,7 +91,7 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
                 "speed": consumption.speed,
                 "total_consumption": consumption.total_consumption,
                 "extra_consumption": consumption.extra_consumption,
-                "outstanding_balance": bill_info.total_outstanding.amount,
+                "outstanding_balance": int(bill_info.total_outstanding.amount),
                 "state_attributes": {"outstanding_balance": bills_history},
             }
 
