@@ -29,8 +29,8 @@ class StateAttribute(TypedDict):
 
 class Data(TypedDict):
     quota: int
-    download: float
-    upload: float
+    # download: float
+    # upload: float
     last_update: datetime
     speed: str
     total_consumption: float
@@ -85,8 +85,8 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
 
             data: Data = {
                 "quota": consumption.quota,
-                "upload": consumption.upload,
-                "download": consumption.download,
+                # "upload": consumption.upload,
+                # "download": consumption.download,
                 "last_update": consumption.last_update,
                 "speed": consumption.speed,
                 "total_consumption": consumption.total_consumption,
