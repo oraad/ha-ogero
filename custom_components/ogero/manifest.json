@@ -9,7 +9,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/oraad/ha-ogero/issues",
   "requirements": [
-    "pyogero==0.10.0"
+    "pyogero==0.10.1"
   ],
-  "version": "0.4.4"
+  "version": "0.4.5"
 }

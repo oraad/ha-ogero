@@ -1,6 +1,6 @@
 colorlog==6.7.0
-homeassistant>=2023.11.3
+homeassistant>=2024.6.0
 pip>=21.0,<23.4
 ruff==0.1.14
-pyogero==0.10.0
+pyogero==0.10.1
 urllib3>=1.26.16
