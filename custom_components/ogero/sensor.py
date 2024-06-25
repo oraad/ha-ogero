@@ -16,8 +16,8 @@ from .coordinator import OgeroDataUpdateCoordinator
 from .entity import OgeroEntity
 
 SPEED = "speed"
-UPLOAD = "upload"
-DOWNLOAD = "download"
+# UPLOAD = "upload"
+# DOWNLOAD = "download"
 TOTAL_CONSUMPTION = "total_consumption"
 EXTRA_CONSUMPTION = "extra_consumption"
 QUOTA = "quota"
@@ -38,20 +38,20 @@ ENTITY_DESCRIPTIONS = (
         translation_key=SPEED,
         icon="mdi:speedometer",
     ),
-    SensorEntityDescription(
-        key=DOWNLOAD,
-        translation_key=DOWNLOAD,
-        native_unit_of_measurement="GB",
-        suggested_display_precision=1,
-        icon="mdi:download",
-    ),
-    SensorEntityDescription(
-        key=UPLOAD,
-        translation_key=UPLOAD,
-        native_unit_of_measurement="GB",
-        suggested_display_precision=1,
-        icon="mdi:upload",
-    ),
+    # SensorEntityDescription(
+    #     key=DOWNLOAD,
+    #     translation_key=DOWNLOAD,
+    #     native_unit_of_measurement="GB",
+    #     suggested_display_precision=1,
+    #     icon="mdi:download",
+    # ),
+    # SensorEntityDescription(
+    #     key=UPLOAD,
+    #     translation_key=UPLOAD,
+    #     native_unit_of_measurement="GB",
+    #     suggested_display_precision=1,
+    #     icon="mdi:upload",
+    # ),
     SensorEntityDescription(
         key=TOTAL_CONSUMPTION,
         translation_key=TOTAL_CONSUMPTION,
