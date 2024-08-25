@@ -1,18 +1,24 @@
-"""Custom integration to integrate Ogero Telekom with Home Assistant.
+"""
+Custom integration to integrate Ogero Telekom with Home Assistant.
 
 For more details about this integration, please refer to
 https://github.com/oraad/ha-ogero
 """
+
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+from typing import TYPE_CHECKING
+
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import OgeroApiClient, Account
+from .api import Account, OgeroApiClient
 from .const import DOMAIN
 from .coordinator import OgeroDataUpdateCoordinator
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 

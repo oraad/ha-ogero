@@ -1,29 +1,36 @@
 """Adds config flow for Ogero."""
+
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, FlowResult
+from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.selector import (
+    SelectOptionDict,
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
-    SelectOptionDict,
 )
 
 from .api import (
+    Account,
     OgeroApiClient,
     OgeroApiClientAuthenticationError,
     OgeroApiClientCommunicationError,
     OgeroApiClientError,
-    Account,
 )
 from .const import DOMAIN, LOGGER
 
+if TYPE_CHECKING:
+    from homeassistant.data_entry_flow import FlowResult
+
 ACCOUNT = "account"
+
 
 @callback
 def configured_instances(hass: HomeAssistant) -> set[str]:
@@ -39,7 +46,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    _client: OgeroApiClient = None
+    _client: OgeroApiClient | None = None
     _user_data: dict
 
     async def async_step_user(
@@ -132,22 +139,23 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):
             errors=_errors,
         )
 
-    def _create_client(self, username: str, password: str) -> None:
+    def _create_client(self, username: str, password: str) -> OgeroApiClient:
         if self._client is None:
             self._client = OgeroApiClient(
                 username=username,
                 password=password,
                 session=async_create_clientsession(self.hass),
             )
+        return self._client
 
     async def _test_credentials(self, username: str, password: str):
         """Validate credentials."""
-        self._create_client(username, password)
+        client = self._create_client(username, password)
         LOGGER.debug("call async login")
-        await self._client.async_login()
+        await client.async_login()
         LOGGER.debug("Done async login")
 
     async def _get_accounts(self, username: str, password: str):
         """Validate credentials."""
-        self._create_client(username, password)
-        return await self._client.async_get_accounts()
+        client = self._create_client(username, password)
+        return await client.async_get_accounts()

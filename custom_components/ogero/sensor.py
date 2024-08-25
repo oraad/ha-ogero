@@ -1,19 +1,24 @@
 """Sensor platform for ogero."""
+
 from __future__ import annotations
 
-from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from typing import TYPE_CHECKING, Any, ClassVar
+
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
-    SensorDeviceClass,
 )
+from homeassistant.components.sensor.const import SensorDeviceClass
 
 from .const import DOMAIN, LOGGER
-from .coordinator import OgeroDataUpdateCoordinator
 from .entity import OgeroEntity
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
+    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+    from .coordinator import OgeroDataUpdateCoordinator
 
 SPEED = "speed"
 # UPLOAD = "upload"
@@ -80,7 +85,7 @@ EXTENDED_ENTITY_DESCRIPTIONS = (
         translation_key=OUTSTANDING_BALANCE,
         device_class=SensorDeviceClass.MONETARY,
         native_unit_of_measurement="LBP",
-        suggested_display_precision=0
+        suggested_display_precision=0,
     ),
 )
 
@@ -120,24 +125,25 @@ class OgeroSensor(OgeroEntity, SensorEntity):
         self.entity_description = entity_description
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> Any:
         """Return the native value of the sensor."""
         return self.coordinator.data.get(self.entity_description.key)
 
 
 class ExtendedOgeroSensor(OgeroSensor):
-    _attr_extra_state_attributes = {}
+    _attr_extra_state_attributes: ClassVar[dict] = {}
 
     @property
-    def native_value(self) -> str:
+    def native_value(self) -> Any:
         """Return the native value of the sensor."""
         attributes = self.coordinator.data.get("state_attributes").get(
             self.entity_description.key
         )
 
-        for attribute in attributes:
-            key, value = attribute
-            LOGGER.debug("attribute key: %s, value: %s", key, value)
-            self._attr_extra_state_attributes[key] = value
+        if attributes is not None:
+            for attribute in attributes:
+                key, value = attribute
+                LOGGER.debug("attribute key: %s, value: %s", key, value)
+                self._attr_extra_state_attributes[key] = value
 
         return self.coordinator.data.get(self.entity_description.key)

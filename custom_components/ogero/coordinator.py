@@ -1,26 +1,29 @@
 """DataUpdateCoordinator for ogero."""
+
 from __future__ import annotations
 
-from typing import TypedDict
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING, TypedDict
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from pyogero.types import BillStatus
 
 from .api import (
+    Account,
     OgeroApiClient,
     OgeroApiClientAuthenticationError,
     OgeroApiClientError,
-    Account,
-    BillStatus,
 )
 from .const import DOMAIN, LOGGER
 from .device_info import OgeroDeviceInfo
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 
 class StateAttribute(TypedDict):
@@ -65,23 +68,22 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
         self._device = OgeroDeviceInfo(hass, self.config_entry, account.phone)
 
     @property
-    def device(self):
+    def device(self) -> OgeroDeviceInfo:
         return self._device
 
-    async def _get_account_info(self):
+    async def _get_account_info(self) -> Data:
         try:
             consumption = await self.client.async_get_consumption(self.account)
             bill_info = await self.client.async_get_bills(self.account)
 
-            bills_history = []
-            for bill in bill_info.bills:
-                if bill.status == BillStatus.UNPAID:
-                    bills_history.append(
-                        (
-                            bill.date.strftime("%Y-%m"),
-                            f"{bill.amount.currency} {int(bill.amount.amount)} ({bill.status.name})",
-                        )
-                    )
+            bills_history = [
+                (
+                    bill.date.strftime("%Y-%m"),
+                    f"{bill.amount.currency} {int(bill.amount.amount)} ({bill.status.name})",
+                )
+                for bill in bill_info.bills
+                if bill.status == BillStatus.UNPAID
+            ]
 
             data: Data = {
                 "quota": consumption.quota,
@@ -106,6 +108,4 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
 
     async def _async_update_data(self):
         """Update data via library."""
-        data = await self._get_account_info()
-
-        return data
+        return await self._get_account_info()

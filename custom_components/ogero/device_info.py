@@ -1,15 +1,17 @@
 """Library for extracting device specific information common to entities."""
 
 from __future__ import annotations
-from typing import Optional
 
-from homeassistant.const import CONF_NAME
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from typing import TYPE_CHECKING
+
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.device_registry import DeviceInfo, DeviceEntryType
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from .const import DOMAIN, NAME, VERSION
+
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
 
 
 class OgeroDeviceInfo:
@@ -18,7 +20,7 @@ class OgeroDeviceInfo:
         hass: HomeAssistant,
         config_entry: ConfigEntry,
         name: str,
-        device_type: Optional[DeviceEntryType] = None,
+        device_type: DeviceEntryType | None = None,
     ) -> None:
         """Initialize the DeviceInfo."""
         self._hass = hass
@@ -34,7 +36,6 @@ class OgeroDeviceInfo:
     @property
     def device_info(self) -> DeviceInfo:
         """Return device specific attributes."""
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
             name=self._name,
@@ -48,6 +49,8 @@ class OgeroDeviceInfo:
         device_info = self.device_info
         device_registry = dr.async_get(self._hass)
         if device_entry := device_registry.async_get_device(
-            identifiers=device_info["identifiers"]
+            identifiers=device_info.get("identifiers")
         ):
             return device_entry.id
+
+        return None
