@@ -1,10 +1,10 @@
 """OgeroEntity class."""
+
 from __future__ import annotations
 
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
+from .const import ATTRIBUTION
 from .coordinator import OgeroDataUpdateCoordinator
 
 
