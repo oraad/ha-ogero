@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class OgeroDeviceInfo:
+    """Ogero DeviceInfo class."""
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -45,7 +47,8 @@ class OgeroDeviceInfo:
         )
 
     @property
-    def device_id(self):
+    def device_id(self) -> str | None:
+        """Return device id."""
         device_info = self.device_info
         device_registry = dr.async_get(self._hass)
         if device_entry := device_registry.async_get_device(

@@ -10,9 +10,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from pyogero.asyncio import AuthenticationException
 
-from .api import Account, OgeroApiClient
+from .api import (
+    Account,
+    OgeroApiClient,
+    OgeroApiClientAuthenticationError,
+    OgeroApiClientCommunicationError,
+    OgeroApiClientError,
+)
 from .const import DOMAIN
 from .coordinator import OgeroDataUpdateCoordinator
 
@@ -30,16 +38,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
 
+    try:
+        client = OgeroApiClient(
+            username=entry.data[CONF_USERNAME],
+            password=entry.data[CONF_PASSWORD],
+            session=async_get_clientsession(hass),
+        )
+        await client.async_login()
+    except AuthenticationException as exception:
+        raise ConfigEntryAuthFailed from exception
+    except OgeroApiClientAuthenticationError as exception:
+        raise ConfigEntryAuthFailed from exception
+    except OgeroApiClientCommunicationError as exception:
+        raise ConfigEntryNotReady from exception
+    except OgeroApiClientError as exception:
+        raise ConfigEntryNotReady from exception
+
+    if ACCOUNT not in entry.data:
+        raise ConfigEntryAuthFailed
+
     account = Account.deserialize(entry.data[ACCOUNT])
 
     hass.data[DOMAIN][entry.entry_id] = coordinator = OgeroDataUpdateCoordinator(
         hass=hass,
         account=account,
-        client=OgeroApiClient(
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
-            session=async_get_clientsession(hass),
-        ),
+        client=client,
     )
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()

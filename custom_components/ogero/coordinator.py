@@ -32,8 +32,6 @@ class StateAttribute(TypedDict):
 
 class Data(TypedDict):
     quota: int
-    # download: float
-    # upload: float
     last_update: datetime
     speed: str
     total_consumption: float
@@ -69,6 +67,7 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
 
     @property
     def device(self) -> OgeroDeviceInfo:
+        """Get device info."""
         return self._device
 
     async def _get_account_info(self) -> Data:
@@ -87,8 +86,6 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
 
             data: Data = {
                 "quota": consumption.quota,
-                # "upload": consumption.upload,
-                # "download": consumption.download,
                 "last_update": consumption.last_update,
                 "speed": consumption.speed,
                 "total_consumption": consumption.total_consumption,
@@ -97,15 +94,14 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
                 "state_attributes": {"outstanding_balance": bills_history},
             }
 
-            LOGGER.debug("data: %s", data)
-
-            return data
-
         except OgeroApiClientAuthenticationError as exception:
             raise ConfigEntryAuthFailed(exception) from exception
         except OgeroApiClientError as exception:
             raise UpdateFailed(exception) from exception
+        else:
+            LOGGER.debug("data: %s", data)
+            return data
 
-    async def _async_update_data(self):
+    async def _async_update_data(self) -> Data:
         """Update data via library."""
         return await self._get_account_info()
