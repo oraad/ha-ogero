@@ -11,5 +11,5 @@
   "requirements": [
     "pyogero==0.10.2"
   ],
-  "version": "0.4.7"
+  "version": "0.4.8"
 }

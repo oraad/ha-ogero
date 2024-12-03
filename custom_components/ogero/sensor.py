@@ -21,8 +21,6 @@ if TYPE_CHECKING:
     from .coordinator import OgeroDataUpdateCoordinator
 
 SPEED = "speed"
-# UPLOAD = "upload"
-# DOWNLOAD = "download"
 TOTAL_CONSUMPTION = "total_consumption"
 EXTRA_CONSUMPTION = "extra_consumption"
 QUOTA = "quota"
@@ -43,20 +41,6 @@ ENTITY_DESCRIPTIONS = (
         translation_key=SPEED,
         icon="mdi:speedometer",
     ),
-    # SensorEntityDescription(
-    #     key=DOWNLOAD,
-    #     translation_key=DOWNLOAD,
-    #     native_unit_of_measurement="GB",
-    #     suggested_display_precision=1,
-    #     icon="mdi:download",
-    # ),
-    # SensorEntityDescription(
-    #     key=UPLOAD,
-    #     translation_key=UPLOAD,
-    #     native_unit_of_measurement="GB",
-    #     suggested_display_precision=1,
-    #     icon="mdi:upload",
-    # ),
     SensorEntityDescription(
         key=TOTAL_CONSUMPTION,
         translation_key=TOTAL_CONSUMPTION,
@@ -92,7 +76,7 @@ EXTENDED_ENTITY_DESCRIPTIONS = (
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
-):
+) -> None:
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_devices(
@@ -113,7 +97,7 @@ async def async_setup_entry(
 
 
 class OgeroSensor(OgeroEntity, SensorEntity):
-    """ogero Sensor class."""
+    """Ogero Sensor class."""
 
     def __init__(
         self,
@@ -131,6 +115,8 @@ class OgeroSensor(OgeroEntity, SensorEntity):
 
 
 class ExtendedOgeroSensor(OgeroSensor):
+    """Ogero Extended Sensor class."""
+
     _attr_extra_state_attributes: ClassVar[dict] = {}
 
     @property
