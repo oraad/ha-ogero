@@ -104,6 +104,7 @@ class OgeroApiClient:
             raise OgeroApiClientAuthenticationError(authEx.args) from None
 
     async def async_get_accounts(self, account: Account | None = None) -> list[Account]:
+        """Get user linked accounts."""
         _account = AccountMapper.to_ogero(account)
         accounts = await self.ogero_client.get_accounts(_account)
         if accounts is None:
@@ -112,6 +113,7 @@ class OgeroApiClient:
         return [AccountMapper.from_ogero(account) for account in accounts]
 
     async def async_get_bills(self, account: Account) -> BillInfo:
+        """Get account bills."""
         _account = AccountMapper.to_ogero(account)
         bill_infos = await self.ogero_client.get_bill_info(_account)
         if bill_infos is None:
@@ -120,62 +122,10 @@ class OgeroApiClient:
         return bill_infos
 
     async def async_get_consumption(self, account: Account) -> ConsumptionInfo:
+        """Get account consumption."""
         _account = AccountMapper.to_ogero(account)
         consumption_info = await self.ogero_client.get_consumption_info(_account)
         if consumption_info is None:
             msg = "No consumption info found."
             raise OgeroApiClientError(msg)
         return consumption_info
-
-    # async def async_get_data(self) -> any:
-    #     """Get data from the API."""
-    #     return await self._api_wrapper(
-    #         method="get", url="https://jsonplaceholder.typicode.com/posts/1"
-    #     )
-
-    # async def async_set_title(self, value: str) -> any:
-    #     """Get data from the API."""
-    #     return await self._api_wrapper(
-    #         method="patch",
-    #         url="https://jsonplaceholder.typicode.com/posts/1",
-    #         data={"title": value},
-    #         headers={"Content-type": "application/json; charset=UTF-8"},
-    #     )
-
-    # async def _api_wrapper(
-    #     self,
-    #     method: str,
-    #     url: str,
-    #     data: dict | None = None,
-    #     headers: dict | None = None,
-    # ) -> bool:
-    #     """Get information from the API."""
-    #     try:
-    #         async with async_timeout.timeout(10):
-    #             response = await self._session.request(
-    #                 method=method,
-    #                 url=url,
-    #                 headers=headers,
-    #                 json=data,
-    #             )
-    #             if response.status in (401, 403):
-    #                 msg = "Invalid credentials"
-    #                 raise OgeroApiClientAuthenticationError(
-    #                     msg,
-    #                 ) from None
-    #             response.raise_for_status()
-    #             return await response.json()
-
-    #     except TimeoutError as exception:
-    #         msg = "Timeout error fetching information"
-    #         raise OgeroApiClientCommunicationError(
-    #             msg,
-    #         ) from exception
-    #     except (aiohttp.ClientError, socket.gaierror) as exception:
-    #         msg = "Error fetching information"
-    #         raise OgeroApiClientCommunicationError(
-    #             msg,
-    #         ) from exception
-    #     except Exception as exception:  # pylint: disable=broad-except
-    #         msg = "Something really wrong happened!"
-    #         raise OgeroApiClientError(msg) from exception

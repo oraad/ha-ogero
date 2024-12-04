@@ -7,6 +7,8 @@ from typing import TypedDict
 
 
 class Manifest(TypedDict):
+    """Manifest."""
+
     domain: str
     name: str
     codeowners: list[str]

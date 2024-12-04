@@ -27,10 +27,14 @@ if TYPE_CHECKING:
 
 
 class StateAttribute(TypedDict):
+    """Device state attribute."""
+
     outstanding_balance: list[tuple]
 
 
 class Data(TypedDict):
+    """Device data."""
+
     quota: int
     last_update: datetime
     speed: str
@@ -78,7 +82,7 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[Data]):
             bills_history = [
                 (
                     bill.date.strftime("%Y-%m"),
-                    f"{bill.amount.currency} {int(bill.amount.amount)} ({bill.status.name})",
+                    f"{bill.amount.currency} {int(bill.amount.amount)} ({bill.status.name})",  # noqa: E501
                 )
                 for bill in bill_info.bills
                 if bill.status == BillStatus.UNPAID
