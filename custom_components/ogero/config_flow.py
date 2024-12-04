@@ -108,7 +108,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             is_predefined = user_input[ACCOUNT] in configured_instances(self.hass)
 
-            if is_predefined:
+            if not self._user_data[IS_NEW] and is_predefined:
                 _errors[ACCOUNT] = "account_already_configured"
 
             if len(_errors) == 0:
@@ -165,7 +165,6 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] | None = {}
 
         if user_input is not None:
-            user_input[CONF_USERNAME] = self._user_data[CONF_USERNAME]
             try:
                 await self._test_credentials(
                     username=user_input[CONF_USERNAME],
@@ -187,10 +186,21 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            description_placeholders={"username": self._user_data[CONF_USERNAME]},
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_PASSWORD): str,
+                    vol.Required(
+                        CONF_USERNAME,
+                        default=(user_input or self._user_data).get(CONF_USERNAME),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT
+                        ),
+                    ),
+                    vol.Required(CONF_PASSWORD): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD
+                        ),
+                    ),
                 }
             ),
             errors=errors,
