@@ -38,6 +38,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
 
+    if CONF_USERNAME not in entry.data:
+        raise ConfigEntryAuthFailed
+
     try:
         client = OgeroApiClient(
             username=entry.data[CONF_USERNAME],
