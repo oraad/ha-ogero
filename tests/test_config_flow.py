@@ -80,9 +80,9 @@ async def test_user_flow(hass: HomeAssistant) -> None:
 
 async def test_user_flow_invalid_auth(hass: HomeAssistant) -> None:
     """Test invalid credentials."""
-    with patch("custom_components.ogero.config_flow.OgeroApiClient") as mock_cls:
-        client = mock_cls.return_value
-        client.async_login = AsyncMock(
+    with patch("custom_components.ogero.config_flow.create_api_client") as mock_create:
+        mock_client = mock_create.return_value
+        mock_client.async_login = AsyncMock(
             side_effect=OgeroApiClientAuthenticationError("auth failed")
         )
 
@@ -100,9 +100,9 @@ async def test_user_flow_invalid_auth(hass: HomeAssistant) -> None:
 
 async def test_user_flow_cannot_connect(hass: HomeAssistant) -> None:
     """Test connection errors."""
-    with patch("custom_components.ogero.config_flow.OgeroApiClient") as mock_cls:
-        client = mock_cls.return_value
-        client.async_login = AsyncMock(
+    with patch("custom_components.ogero.config_flow.create_api_client") as mock_create:
+        mock_client = mock_create.return_value
+        mock_client.async_login = AsyncMock(
             side_effect=OgeroApiClientCommunicationError("offline")
         )
 
@@ -262,7 +262,6 @@ async def test_add_second_account_subentry(
     sensor_entities = [
         entity
         for entity in entity_reg.entities.values()
-        if entity.config_entry_id == entry.entry_id
-        and entity.platform == "sensor"
+        if entity.config_entry_id == entry.entry_id and entity.platform == "sensor"
     ]
     assert len(sensor_entities) == len(ENTITY_DESCRIPTIONS) * account_count

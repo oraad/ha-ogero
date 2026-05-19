@@ -13,7 +13,9 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-def _state_for_unique_id(hass: HomeAssistant, domain: str, unique_id: str) -> str | None:
+def _state_for_unique_id(
+    hass: HomeAssistant, domain: str, unique_id: str
+) -> str | None:
     """Return state for an entity registry unique id."""
     entity_id = er.async_get(hass).async_get_entity_id(domain, "ogero", unique_id)
     if entity_id is None:
@@ -24,5 +26,11 @@ def _state_for_unique_id(hass: HomeAssistant, domain: str, unique_id: str) -> st
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
 async def test_binary_sensors(hass: HomeAssistant) -> None:
     """Test binary sensor states."""
-    assert _state_for_unique_id(hass, "binary_sensor", f"{TEST_SUBENTRY_ID}_unpaid_bills") == "on"
-    assert _state_for_unique_id(hass, "binary_sensor", f"{TEST_SUBENTRY_ID}_over_quota") == "on"
+    assert (
+        _state_for_unique_id(hass, "binary_sensor", f"{TEST_SUBENTRY_ID}_unpaid_bills")
+        == "on"
+    )
+    assert (
+        _state_for_unique_id(hass, "binary_sensor", f"{TEST_SUBENTRY_ID}_over_quota")
+        == "on"
+    )

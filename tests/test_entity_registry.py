@@ -16,9 +16,7 @@ if TYPE_CHECKING:
     from custom_components.ogero.data import OgeroConfigEntry
 
 
-def _registry_entry(
-    hass: HomeAssistant, unique_id: str
-) -> er.RegistryEntry | None:
+def _registry_entry(hass: HomeAssistant, unique_id: str) -> er.RegistryEntry | None:
     """Return the entity registry entry for an Ogero unique id."""
     entity_id = er.async_get(hass).async_get_entity_id("sensor", "ogero", unique_id)
     if entity_id is None:

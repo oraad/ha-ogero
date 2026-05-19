@@ -21,6 +21,9 @@ from custom_components.ogero.const import (
     SUBENTRY_TYPE_ACCOUNT,
 )
 
+pytest_plugins = ("pytest_homeassistant_custom_component",)
+pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
+
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Iterator
 
@@ -85,22 +88,27 @@ def _mock_api_client(
     consumption_info: ConsumptionInfo,
     bill_info: BillInfo,
 ) -> Iterator[MagicMock]:
-    """Patch OgeroApiClient with successful responses."""
+    """Patch API client factory with successful responses."""
     accounts = [
         Account(internet="12345", phone="01234567"),
         Account(internet="67890", phone="07654321"),
     ]
+    mock_client = MagicMock()
+    mock_client.async_login = AsyncMock(return_value=True)
+    mock_client.async_get_accounts = AsyncMock(return_value=accounts)
+    mock_client.async_get_consumption = AsyncMock(return_value=consumption_info)
+    mock_client.async_get_bills = AsyncMock(return_value=bill_info)
     with (
-        patch("custom_components.ogero.config_flow.OgeroApiClient") as flow_mock,
-        patch("custom_components.ogero.__init__.OgeroApiClient") as init_mock,
+        patch(
+            "custom_components.ogero.config_flow.create_api_client",
+            return_value=mock_client,
+        ),
+        patch(
+            "custom_components.ogero.__init__.create_api_client",
+            return_value=mock_client,
+        ),
     ):
-        for mock_cls in (flow_mock, init_mock):
-            client = mock_cls.return_value
-            client.async_login = AsyncMock(return_value=True)
-            client.async_get_accounts = AsyncMock(return_value=accounts)
-            client.async_get_consumption = AsyncMock(return_value=consumption_info)
-            client.async_get_bills = AsyncMock(return_value=bill_info)
-        yield flow_mock.return_value
+        yield mock_client
 
 
 @pytest.fixture
