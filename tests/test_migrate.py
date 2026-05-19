@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-@pytest.mark.usefixtures("mock_api_client")
+@pytest.mark.usefixtures("mock_api_client", "mock_setup_entry")
 async def test_migrate_merge_same_username(hass: HomeAssistant) -> None:
     """Two v1 entries with the same username merge into one v2 parent."""
     account_b = "99999|09999999"
