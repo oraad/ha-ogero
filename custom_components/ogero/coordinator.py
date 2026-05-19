@@ -37,7 +37,7 @@ class OgeroCoordinatorData:
     has_extra_consumption: bool
 
 
-class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):
+class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  # type: ignore[misc]
     """Fetch Ogero account data for all entities."""
 
     config_entry: OgeroConfigEntry

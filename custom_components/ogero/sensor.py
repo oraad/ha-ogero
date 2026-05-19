@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -111,7 +111,10 @@ async def async_setup_entry(
         )
 
 
-class OgeroSensor(OgeroEntity, SensorEntity):
+class OgeroSensor(
+    OgeroEntity,
+    SensorEntity,  # type: ignore[misc]
+):
     """Ogero sensor."""
 
     entity_description: SensorEntityDescription
@@ -132,7 +135,7 @@ class OgeroSensor(OgeroEntity, SensorEntity):
         data = self.coordinator.data
         if data is None:
             return None
-        return getattr(data, self.entity_description.key)
+        return cast(OgeroSensorValue, getattr(data, self.entity_description.key))
 
     @property
     def extra_state_attributes(self) -> dict[str, list[dict[str, str]]] | None:

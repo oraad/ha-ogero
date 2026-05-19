@@ -190,7 +190,7 @@ async def test_options_flow_updates_interval(
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_SCAN_INTERVAL] == CUSTOM_SCAN_INTERVAL_SECONDS
 
-    await hass.async_block_till_done(wait_background_tasks=True)
+    await hass.async_block_till_done()
 
     entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert entry is not None
@@ -250,7 +250,7 @@ async def test_add_second_account_subentry(
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
-    await hass.async_block_till_done(wait_background_tasks=True)
+    await hass.async_block_till_done()
 
     entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert entry is not None

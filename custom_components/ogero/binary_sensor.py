@@ -61,7 +61,10 @@ async def async_setup_entry(
         )
 
 
-class OgeroBinarySensor(OgeroEntity, BinarySensorEntity):
+class OgeroBinarySensor(
+    OgeroEntity,
+    BinarySensorEntity,  # type: ignore[misc]
+):
     """Ogero binary sensor."""
 
     entity_description: BinarySensorEntityDescription
@@ -83,7 +86,7 @@ class OgeroBinarySensor(OgeroEntity, BinarySensorEntity):
         if data is None:
             return None
         if self.entity_description.key == UNPAID_BILLS:
-            return data.has_unpaid_bills
+            return bool(data.has_unpaid_bills)
         if self.entity_description.key == OVER_QUOTA:
-            return data.has_extra_consumption
+            return bool(data.has_extra_consumption)
         return None

@@ -47,9 +47,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> boo
 
 async def async_unload_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bool:
     """Unload a config entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+    unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if unloaded:
         entry.runtime_data = None
-    return unloaded
+    return bool(unloaded)
 
 
 async def async_remove_config_entry_device(

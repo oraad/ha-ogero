@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from types import MappingProxyType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.config_entries import ConfigSubentry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 def _username_unique_id(username: str) -> str:
     """Return a stable unique id for an Ogero login."""
-    return slugify(username)
+    return cast(str, slugify(username))
 
 
 def _find_parent_entry(
@@ -56,7 +56,7 @@ def _get_subentry_id_for_account(
             subentry.subentry_type == SUBENTRY_TYPE_ACCOUNT
             and subentry.unique_id == account_serial
         ):
-            return subentry.subentry_id
+            return cast(str, subentry.subentry_id)
     return None
 
 
@@ -83,7 +83,7 @@ def _add_account_subentry(
         unique_id=account_serial,
     )
     hass.config_entries.async_add_subentry(entry, subentry)
-    return subentry.subentry_id
+    return cast(str, subentry.subentry_id)
 
 
 def _rehome_entities(

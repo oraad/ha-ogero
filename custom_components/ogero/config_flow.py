@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import voluptuous as vol
 from homeassistant.config_entries import (
@@ -53,20 +53,20 @@ if TYPE_CHECKING:
 
 def _username_unique_id(username: str) -> str:
     """Return a stable unique id for an Ogero login."""
-    return slugify(username)
+    return cast(str, slugify(username))
 
 
-@callback
+@callback  # type: ignore[untyped-decorator]
 def _configured_account_serials(entry: OgeroConfigEntry) -> set[str]:
     """Return account serials already configured on this entry."""
     return {
-        subentry.unique_id
+        cast(str, subentry.unique_id)
         for subentry in entry.subentries.values()
         if subentry.subentry_type == SUBENTRY_TYPE_ACCOUNT and subentry.unique_id
     }
 
 
-class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg,misc]
     """Handle a config flow for Ogero."""
 
     VERSION = CONFIG_ENTRY_VERSION
@@ -231,7 +231,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         )
 
     @classmethod
-    @callback
+    @callback  # type: ignore[untyped-decorator]
     def async_get_supported_subentry_types(
         cls, _config_entry: OgeroConfigEntry
     ) -> dict[str, type[ConfigSubentryFlow]]:
@@ -239,7 +239,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         return {SUBENTRY_TYPE_ACCOUNT: AccountSubentryFlowHandler}
 
     @staticmethod
-    @callback
+    @callback  # type: ignore[untyped-decorator]
     def async_get_options_flow(
         _config_entry: OgeroConfigEntry,
     ) -> OgeroOptionsFlowHandler:
@@ -258,7 +258,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
         await client.async_login()
 
 
-class AccountSubentryFlowHandler(ConfigSubentryFlow):
+class AccountSubentryFlowHandler(ConfigSubentryFlow):  # type: ignore[misc]
     """Handle subentry flow for adding and modifying an Ogero line."""
 
     def __init__(self) -> None:
@@ -367,7 +367,7 @@ class AccountSubentryFlowHandler(ConfigSubentryFlow):
         return await client.async_get_accounts()
 
 
-class OgeroOptionsFlowHandler(OptionsFlowWithReload):
+class OgeroOptionsFlowHandler(OptionsFlowWithReload):  # type: ignore[misc]
     """Handle Ogero options."""
 
     async def async_step_init(

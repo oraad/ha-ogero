@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigSubentry
 
 
-class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):
+class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):  # type: ignore[misc]
     """Base entity for Ogero."""
 
     _attr_attribution = ATTRIBUTION

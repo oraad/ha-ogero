@@ -20,6 +20,7 @@ jobs:
   pytest:
     name: Pytest (${{ matrix.name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +49,7 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install colorlog pyogero==0.13.0
           python3 -m pip install homeassistant
-          python3 -m pip install pytest-homeassistant-custom-component
+          python3 -m pip install pytest-homeassistant-custom-component pytest-timeout
 
       - name: Run tests
         run: python3 -m pytest tests -q

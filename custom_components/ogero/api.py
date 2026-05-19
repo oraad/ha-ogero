@@ -107,7 +107,7 @@ class OgeroApiClient:
     async def async_login(self) -> bool:
         """Login to the API."""
         try:
-            return await self.ogero_client.login()
+            return bool(await self.ogero_client.login())
         except AuthenticationException as auth_ex:
             LOGGER.error("Login failed")
             raise OgeroApiClientAuthenticationError(auth_ex.args) from auth_ex
