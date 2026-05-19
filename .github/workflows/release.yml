@@ -4,6 +4,12 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to package (e.g. v0.6.0-beta.1)
+        required: true
+        type: string
 
 permissions: {}
 
@@ -17,7 +23,7 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: ZIP the integration directory
         shell: bash
@@ -28,4 +34,5 @@ jobs:
       - name: Upload the ZIP file to the release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
+          tag_name: ${{ github.event.release.tag_name || inputs.tag }}
           files: ${{ github.workspace }}/custom_components/ogero/ogero.zip
