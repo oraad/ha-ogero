@@ -185,7 +185,7 @@ async def test_options_flow_updates_interval(
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {CONF_SCAN_INTERVAL: CUSTOM_SCAN_INTERVAL_SECONDS},
+        {CONF_SCAN_INTERVAL: {"seconds": CUSTOM_SCAN_INTERVAL_SECONDS}},
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["data"][CONF_SCAN_INTERVAL] == CUSTOM_SCAN_INTERVAL_SECONDS

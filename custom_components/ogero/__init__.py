@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import create_api_client
@@ -26,8 +26,9 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-@callback
-def _async_config_entry_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def _async_config_entry_updated(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> None:
     """Reload when parent data, options, or subentries change."""
     hass.config_entries.async_schedule_reload(entry.entry_id)
 
