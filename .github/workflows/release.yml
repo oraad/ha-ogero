@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: ZIP the integration directory
         shell: bash
@@ -24,6 +26,6 @@ jobs:
           zip ogero.zip -r ./
 
       - name: Upload the ZIP file to the release
-        uses: softprops/action-gh-release@05c4f37acfe488b4df30f47f3ceff176ae5a2e92 # v2.5.0
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         with:
           files: ${{ github.workspace }}/custom_components/ogero/ogero.zip
