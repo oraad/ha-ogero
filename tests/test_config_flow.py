@@ -262,6 +262,6 @@ async def test_add_second_account_subentry(
     sensor_entities = [
         entity
         for entity in entity_reg.entities.values()
-        if entity.config_entry_id == entry.entry_id and entity.platform == "sensor"
+        if entity.config_entry_id == entry.entry_id and entity.domain == "sensor"
     ]
     assert len(sensor_entities) == len(ENTITY_DESCRIPTIONS) * account_count
