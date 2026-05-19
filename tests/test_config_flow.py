@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant import config_entries
+from homeassistant.config_entries import FlowType
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
@@ -66,11 +67,11 @@ async def test_user_flow(hass: HomeAssistant) -> None:
 
     await hass.async_block_till_done(wait_background_tasks=True)
 
-    subentry_flows = hass.config_entries.subentries.async_progress()
-    assert len(subentry_flows) == 1
+    next_flow = result["next_flow"]
+    assert next_flow[0] == FlowType.CONFIG_SUBENTRIES_FLOW
 
     result = await hass.config_entries.subentries.async_configure(
-        subentry_flows[0]["flow_id"],
+        next_flow[1],
         {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL},
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY

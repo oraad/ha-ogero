@@ -185,7 +185,7 @@ async def _migrate_v1_to_v2(hass: HomeAssistant, entry: OgeroConfigEntry) -> Non
             account_serial,
             subentry_id,
         )
-        hass.config_entries.async_remove(entry.entry_id)
+        await hass.config_entries.async_remove(entry.entry_id)
         return
 
     hass.config_entries.async_update_entry(

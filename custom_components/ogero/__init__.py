@@ -35,7 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> boo
 
     entry.runtime_data = OgeroData(
         client=client,
-        integration=await async_get_loaded_integration(hass, entry.domain),
+        integration=async_get_loaded_integration(hass, entry.domain),
     )
     entry.runtime_data.coordinators.clear()
     await async_setup_account_coordinators(hass, entry, get_update_interval(entry))
