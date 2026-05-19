@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from custom_components.ogero.diagnostics import async_get_config_entry_diagnostics
 from tests.conftest import (
     TEST_ACCOUNT_SERIAL,
     TEST_PASSWORD,
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
 @pytest.mark.usefixtures("mock_api_client")
 async def test_diagnostics(hass: HomeAssistant, loaded_entry: OgeroConfigEntry) -> None:
     """Test diagnostics redact credentials."""
-    result = await hass.config_entries.async_get_diagnostics(loaded_entry.entry_id)
+    result = await async_get_config_entry_diagnostics(hass, loaded_entry)
     dumped = str(result)
     assert TEST_PASSWORD not in dumped
     assert TEST_USERNAME not in dumped

@@ -94,6 +94,27 @@ def _coordinator_data(
     )
 
 
+@pytest.fixture(autouse=True)
+def mock_coordinator_first_refresh(
+    consumption_info: ConsumptionInfo,
+    bill_info: BillInfo,
+) -> Iterator[None]:
+    """Avoid live API refresh during coordinator setup and entry reloads."""
+    coordinator_data = _coordinator_data(consumption_info, bill_info)
+
+    async def _mock_first_refresh(
+        coordinator: OgeroDataUpdateCoordinator,
+    ) -> None:
+        coordinator.async_set_updated_data(coordinator_data)
+
+    with patch.object(
+        OgeroDataUpdateCoordinator,
+        "async_config_entry_first_refresh",
+        _mock_first_refresh,
+    ):
+        yield
+
+
 @pytest.fixture
 def bill_info() -> BillInfo:
     """Return sample bill data."""
@@ -176,18 +197,9 @@ async def loaded_entry(
     hass: HomeAssistant,
     parent_config_data: dict[str, str],
     subentries_data: tuple[dict[str, Any], ...],
-    consumption_info: ConsumptionInfo,
-    bill_info: BillInfo,
     mock_api_client: MagicMock,  # noqa: ARG001
 ) -> MockConfigEntry:
     """Set up a v2 config entry with one account subentry."""
-    coordinator_data = _coordinator_data(consumption_info, bill_info)
-
-    async def _mock_first_refresh(
-        coordinator: OgeroDataUpdateCoordinator,
-    ) -> None:
-        coordinator.async_set_updated_data(coordinator_data)
-
     entry = MockConfigEntry(
         domain=DOMAIN,
         source=SOURCE_USER,
@@ -196,12 +208,7 @@ async def loaded_entry(
         version=CONFIG_ENTRY_VERSION,
         subentries_data=subentries_data,
     )
-    with patch.object(
-        OgeroDataUpdateCoordinator,
-        "async_config_entry_first_refresh",
-        _mock_first_refresh,
-    ):
-        entry.add_to_hass(hass)
-        assert await hass.config_entries.async_setup(entry.entry_id)
-        await hass.async_block_till_done()
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
     return entry

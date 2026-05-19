@@ -9,7 +9,7 @@ from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
     ConfigSubentryFlow,
-    OptionsFlowWithReload,
+    OptionsFlow,
     SubentryFlowResult,
 )
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -367,7 +367,7 @@ class AccountSubentryFlowHandler(ConfigSubentryFlow):  # type: ignore[misc]
         return await client.async_get_accounts()
 
 
-class OgeroOptionsFlowHandler(OptionsFlowWithReload):  # type: ignore[misc]
+class OgeroOptionsFlowHandler(OptionsFlow):  # type: ignore[misc]
     """Handle Ogero options."""
 
     async def async_step_init(
@@ -399,8 +399,6 @@ class OgeroOptionsFlowHandler(OptionsFlowWithReload):  # type: ignore[misc]
                         DurationSelectorConfig(
                             enable_day=False,
                             enable_millisecond=False,
-                            min_seconds=int(MIN_SCAN_INTERVAL.total_seconds()),
-                            max_seconds=int(MAX_SCAN_INTERVAL.total_seconds()),
                         ),
                     ),
                 }

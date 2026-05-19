@@ -40,6 +40,8 @@ async def async_setup_account_coordinators(
     for subentry in entry.subentries.values():
         if subentry.subentry_type != SUBENTRY_TYPE_ACCOUNT:
             continue
+        if subentry.subentry_id in runtime.coordinators:
+            continue
 
         account = Account.deserialize(subentry.data[CONF_ACCOUNT])
         coordinator = OgeroDataUpdateCoordinator(
