@@ -14,6 +14,7 @@ from pyogero.types import Bill, BillAmount, BillInfo, BillStatus, ConsumptionInf
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ogero.api import Account
+from custom_components.ogero.coordinator import OgeroCoordinatorData, OgeroDataUpdateCoordinator
 from custom_components.ogero.const import (
     CONF_ACCOUNT,
     CONFIG_ENTRY_VERSION,
@@ -60,6 +61,36 @@ def consumption_info() -> ConsumptionInfo:
         total_consumption=130.0,
         extra_consumption=5.0,
         last_update=datetime(2024, 6, 1, 12, 0, tzinfo=ZoneInfo("Asia/Beirut")),
+    )
+
+
+def _coordinator_data(
+    consumption_info: ConsumptionInfo,
+    bill_info: BillInfo,
+) -> OgeroCoordinatorData:
+    """Build coordinator data matching production mapping."""
+    unpaid_bills = [
+        {
+            "period": bill.date.strftime("%Y-%m"),
+            "amount": f"{bill.amount.currency} {int(bill.amount.amount)}",
+            "status": bill.status.name,
+        }
+        for bill in bill_info.bills
+        if bill.status == BillStatus.UNPAID
+    ]
+    extra_consumption = consumption_info.extra_consumption
+    return OgeroCoordinatorData(
+        quota=consumption_info.quota,
+        last_update=consumption_info.last_update,
+        speed=consumption_info.speed,
+        upload=consumption_info.upload,
+        download=consumption_info.download,
+        total_consumption=consumption_info.total_consumption,
+        extra_consumption=extra_consumption,
+        outstanding_balance=int(bill_info.total_outstanding.amount),
+        unpaid_bills=unpaid_bills,
+        has_unpaid_bills=any(bill.status == BillStatus.UNPAID for bill in bill_info.bills),
+        has_extra_consumption=extra_consumption > 0,
     )
 
 
@@ -145,9 +176,18 @@ async def loaded_entry(
     hass: HomeAssistant,
     parent_config_data: dict[str, str],
     subentries_data: tuple[dict[str, Any], ...],
+    consumption_info: ConsumptionInfo,
+    bill_info: BillInfo,
     mock_api_client: MagicMock,  # noqa: ARG001
 ) -> MockConfigEntry:
     """Set up a v2 config entry with one account subentry."""
+    coordinator_data = _coordinator_data(consumption_info, bill_info)
+
+    async def _mock_first_refresh(
+        coordinator: OgeroDataUpdateCoordinator,
+    ) -> None:
+        coordinator.async_set_updated_data(coordinator_data)
+
     entry = MockConfigEntry(
         domain=DOMAIN,
         source=SOURCE_USER,
@@ -156,7 +196,12 @@ async def loaded_entry(
         version=CONFIG_ENTRY_VERSION,
         subentries_data=subentries_data,
     )
-    entry.add_to_hass(hass)
-    assert await hass.config_entries.async_setup(entry.entry_id)
-    await hass.async_block_till_done()
+    with patch.object(
+        OgeroDataUpdateCoordinator,
+        "async_config_entry_first_refresh",
+        _mock_first_refresh,
+    ):
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
     return entry
