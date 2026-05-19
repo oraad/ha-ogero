@@ -40,8 +40,6 @@ from .const import (
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     LOGGER,
-    MAX_SCAN_INTERVAL,
-    MIN_SCAN_INTERVAL,
     SUBENTRY_TYPE_ACCOUNT,
 )
 
@@ -53,14 +51,14 @@ if TYPE_CHECKING:
 
 def _username_unique_id(username: str) -> str:
     """Return a stable unique id for an Ogero login."""
-    return cast(str, slugify(username))
+    return cast("str", slugify(username))
 
 
 @callback  # type: ignore[untyped-decorator]
 def _configured_account_serials(entry: OgeroConfigEntry) -> set[str]:
     """Return account serials already configured on this entry."""
     return {
-        cast(str, subentry.unique_id)
+        cast("str", subentry.unique_id)
         for subentry in entry.subentries.values()
         if subentry.subentry_type == SUBENTRY_TYPE_ACCOUNT and subentry.unique_id
     }

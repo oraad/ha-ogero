@@ -135,7 +135,7 @@ class OgeroSensor(
         data = self.coordinator.data
         if data is None:
             return None
-        return cast(OgeroSensorValue, getattr(data, self.entity_description.key))
+        return cast("OgeroSensorValue", getattr(data, self.entity_description.key))
 
     @property
     def extra_state_attributes(self) -> dict[str, list[dict[str, str]]] | None:

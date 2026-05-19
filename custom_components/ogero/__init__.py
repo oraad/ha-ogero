@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import create_api_client
@@ -16,6 +14,8 @@ from .migrate import async_migrate_entry as async_migrate_entry
 from .platform_helpers import async_setup_account_coordinators, get_update_interval
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.core import HomeAssistant
     from homeassistant.helpers import device_registry as dr
 
     from .data import OgeroConfigEntry
@@ -26,9 +26,7 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-async def _async_config_entry_updated(
-    hass: HomeAssistant, entry: ConfigEntry
-) -> None:
+async def _async_config_entry_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload when parent data, options, or subentries change."""
     hass.config_entries.async_schedule_reload(entry.entry_id)
 

@@ -14,12 +14,15 @@ from pyogero.types import Bill, BillAmount, BillInfo, BillStatus, ConsumptionInf
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ogero.api import Account
-from custom_components.ogero.coordinator import OgeroCoordinatorData, OgeroDataUpdateCoordinator
 from custom_components.ogero.const import (
     CONF_ACCOUNT,
     CONFIG_ENTRY_VERSION,
     DOMAIN,
     SUBENTRY_TYPE_ACCOUNT,
+)
+from custom_components.ogero.coordinator import (
+    OgeroCoordinatorData,
+    OgeroDataUpdateCoordinator,
 )
 
 pytest_plugins = ("pytest_homeassistant_custom_component",)
@@ -89,7 +92,9 @@ def _coordinator_data(
         extra_consumption=extra_consumption,
         outstanding_balance=int(bill_info.total_outstanding.amount),
         unpaid_bills=unpaid_bills,
-        has_unpaid_bills=any(bill.status == BillStatus.UNPAID for bill in bill_info.bills),
+        has_unpaid_bills=any(
+            bill.status == BillStatus.UNPAID for bill in bill_info.bills
+        ),
         has_extra_consumption=extra_consumption > 0,
     )
 
