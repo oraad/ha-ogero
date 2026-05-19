@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigSubentry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from homeassistant.util.slugify import slugify
+from homeassistant.util import slugify
 
 from .api import Account
 from .const import (

@@ -26,7 +26,7 @@ from homeassistant.helpers.selector import (
     SelectSelectorConfig,
     SelectSelectorMode,
 )
-from homeassistant.util.slugify import slugify
+from homeassistant.util import slugify
 
 from .api import (
     Account,

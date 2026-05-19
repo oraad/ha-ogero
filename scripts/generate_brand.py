@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Sync dark_icon PNGs from light icon assets (dev-only)."""
 
 from __future__ import annotations

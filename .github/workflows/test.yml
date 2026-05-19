@@ -46,7 +46,7 @@ jobs:
         if: matrix.install == 'latest'
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install colorlog pyogero==0.12.0
+          python3 -m pip install colorlog pyogero==0.13.0
           python3 -m pip install homeassistant
           python3 -m pip install pytest-homeassistant-custom-component
 

@@ -16,9 +16,11 @@ from tests.conftest import (
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+    from custom_components.ogero.data import OgeroConfigEntry
+
 
 @pytest.mark.usefixtures("mock_api_client")
-async def test_diagnostics(hass: HomeAssistant, loaded_entry) -> None:
+async def test_diagnostics(hass: HomeAssistant, loaded_entry: OgeroConfigEntry) -> None:
     """Test diagnostics redact credentials."""
     result = await hass.config_entries.async_get_diagnostics(loaded_entry.entry_id)
     dumped = str(result)

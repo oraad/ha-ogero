@@ -10,7 +10,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
-from homeassistant.util.slugify import slugify
+from homeassistant.util import slugify
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ogero.api import (
@@ -27,6 +27,7 @@ from custom_components.ogero.const import (
 )
 from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS
 from tests.conftest import (
+    DUAL_ACCOUNT_SUBENTRY_COUNT,
     TEST_ACCOUNT_SERIAL,
     TEST_ACCOUNT_SERIAL_2,
     TEST_PASSWORD,
@@ -254,7 +255,7 @@ async def test_add_second_account_subentry(
     entry = hass.config_entries.async_get_entry(entry.entry_id)
     assert entry is not None
     account_count = len(entry.subentries)
-    assert account_count == 2
+    assert account_count == DUAL_ACCOUNT_SUBENTRY_COUNT
     assert len(entry.runtime_data.coordinators) == account_count
 
     entity_reg = er.async_get(hass)

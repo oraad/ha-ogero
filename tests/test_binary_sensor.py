@@ -21,8 +21,8 @@ def _state_for_unique_id(hass: HomeAssistant, domain: str, unique_id: str) -> st
     return hass.states.get(entity_id).state
 
 
-@pytest.mark.usefixtures("mock_api_client")
-async def test_binary_sensors(hass: HomeAssistant, loaded_entry) -> None:
+@pytest.mark.usefixtures("mock_api_client", "loaded_entry")
+async def test_binary_sensors(hass: HomeAssistant) -> None:
     """Test binary sensor states."""
     assert _state_for_unique_id(hass, "binary_sensor", f"{TEST_SUBENTRY_ID}_unpaid_bills") == "on"
     assert _state_for_unique_id(hass, "binary_sensor", f"{TEST_SUBENTRY_ID}_over_quota") == "on"

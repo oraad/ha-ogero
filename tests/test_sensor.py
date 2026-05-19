@@ -22,8 +22,8 @@ def _state_for_unique_id(hass: HomeAssistant, unique_id: str) -> str | None:
     return hass.states.get(entry).state
 
 
-@pytest.mark.usefixtures("mock_api_client")
-async def test_sensors(hass: HomeAssistant, loaded_entry) -> None:
+@pytest.mark.usefixtures("mock_api_client", "loaded_entry")
+async def test_sensors(hass: HomeAssistant) -> None:
     """Test sensor states after setup."""
     assert (
         _state_for_unique_id(hass, f"{TEST_SUBENTRY_ID}_total_consumption") == "130.0"

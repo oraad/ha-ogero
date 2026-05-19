@@ -30,6 +30,11 @@
     },
     "config_subentries": {
         "account": {
+            "entry_type": "Phone or DSL line",
+            "initiate_flow": {
+                "user": "Add line",
+                "reconfigure": "Change line"
+            },
             "step": {
                 "user": {
                     "title": "Add line",

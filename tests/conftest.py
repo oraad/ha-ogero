@@ -9,8 +9,9 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from homeassistant.config_entries import SOURCE_USER
-from homeassistant.util.slugify import slugify
+from homeassistant.util import slugify
 from pyogero.types import Bill, BillAmount, BillInfo, BillStatus, ConsumptionInfo
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ogero.api import Account
 from custom_components.ogero.const import (
@@ -23,7 +24,10 @@ from custom_components.ogero.const import (
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Iterator
 
+    from homeassistant.core import HomeAssistant
+
 TEST_ACCOUNT_SERIAL = "12345|01234567"
+DUAL_ACCOUNT_SUBENTRY_COUNT = 2
 TEST_ACCOUNT_SERIAL_2 = "67890|07654321"
 TEST_SUBENTRY_ID = "01TESTSUBENTRY00000000001"
 TEST_USERNAME = "user"
@@ -76,8 +80,8 @@ def mock_setup_entry() -> AsyncGenerator[AsyncMock]:
         yield mock_setup
 
 
-@pytest.fixture
-def mock_api_client(
+@pytest.fixture(name="mock_api_client")
+def _mock_api_client(
     consumption_info: ConsumptionInfo,
     bill_info: BillInfo,
 ) -> Iterator[MagicMock]:
@@ -124,14 +128,12 @@ def subentries_data() -> tuple[dict[str, Any], ...]:
 
 @pytest.fixture
 async def loaded_entry(
-    hass,
+    hass: HomeAssistant,
     parent_config_data: dict[str, str],
     subentries_data: tuple[dict[str, Any], ...],
-    mock_api_client,
-):
+    _mock_api_client: MagicMock,
+) -> MockConfigEntry:
     """Set up a v2 config entry with one account subentry."""
-    from pytest_homeassistant_custom_component.common import MockConfigEntry
-
     entry = MockConfigEntry(
         domain=DOMAIN,
         source=SOURCE_USER,

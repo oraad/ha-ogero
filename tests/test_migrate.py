@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.util.slugify import slugify
+from homeassistant.util import slugify
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ogero.const import (
@@ -15,14 +17,18 @@ from custom_components.ogero.const import (
     SUBENTRY_TYPE_ACCOUNT,
 )
 from tests.conftest import (
+    DUAL_ACCOUNT_SUBENTRY_COUNT,
     TEST_ACCOUNT_SERIAL,
     TEST_PASSWORD,
     TEST_USERNAME,
 )
 
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
+
 
 @pytest.mark.usefixtures("mock_api_client")
-async def test_migrate_merge_same_username(hass) -> None:
+async def test_migrate_merge_same_username(hass: HomeAssistant) -> None:
     """Two v1 entries with the same username merge into one v2 parent."""
     account_b = "99999|09999999"
     entry_a = MockConfigEntry(
@@ -63,7 +69,7 @@ async def test_migrate_merge_same_username(hass) -> None:
     assert parent.version == CONFIG_ENTRY_VERSION
     assert parent.unique_id == slugify(TEST_USERNAME)
     assert CONF_ACCOUNT not in parent.data
-    assert len(parent.subentries) == 2
+    assert len(parent.subentries) == DUAL_ACCOUNT_SUBENTRY_COUNT
 
     serials = {
         sub.unique_id

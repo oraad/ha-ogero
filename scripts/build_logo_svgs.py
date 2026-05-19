@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Build logo SVG sources from original artwork."""
 
 from pathlib import Path
