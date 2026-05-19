@@ -16,6 +16,7 @@ from custom_components.ogero.const import (
     DOMAIN,
     SUBENTRY_TYPE_ACCOUNT,
 )
+from custom_components.ogero.migrate import async_migrate_entry
 from tests.conftest import (
     DUAL_ACCOUNT_SUBENTRY_COUNT,
     TEST_ACCOUNT_SERIAL,
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-@pytest.mark.usefixtures("mock_api_client", "mock_setup_entry")
+@pytest.mark.usefixtures("mock_api_client")
 async def test_migrate_merge_same_username(hass: HomeAssistant) -> None:
     """Two v1 entries with the same username merge into one v2 parent."""
     account_b = "99999|09999999"
@@ -58,9 +59,13 @@ async def test_migrate_merge_same_username(hass: HomeAssistant) -> None:
     entry_a.add_to_hass(hass)
     entry_b.add_to_hass(hass)
 
-    assert await hass.config_entries.async_setup(entry_a.entry_id)
-    await hass.async_block_till_done()
-    assert await hass.config_entries.async_setup(entry_b.entry_id)
+    migrated_entry_a = hass.config_entries.async_get_entry(entry_a.entry_id)
+    migrated_entry_b = hass.config_entries.async_get_entry(entry_b.entry_id)
+    assert migrated_entry_a is not None
+    assert migrated_entry_b is not None
+
+    assert await async_migrate_entry(hass, migrated_entry_a)
+    assert await async_migrate_entry(hass, migrated_entry_b)
     await hass.async_block_till_done()
 
     entries = hass.config_entries.async_entries(DOMAIN)
