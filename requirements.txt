@@ -6,4 +6,4 @@ pyogero==0.13.0
 pytest-homeassistant-custom-component==0.13.318
 pytest-timeout==2.4.0
 ruff==0.15.13
-mypy==1.19.1
+mypy==2.1.0
