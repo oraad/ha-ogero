@@ -215,7 +215,7 @@ async def test_reauth_flow(
     )
     entry.add_to_hass(hass)
 
-    result = await entry.start_reauth(hass)
+    result = await entry.start_reauth_flow(hass)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
 

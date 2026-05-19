@@ -5,15 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from custom_components.ogero.api import create_api_client
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-@pytest.mark.usefixtures("enable_custom_integrations")
 async def test_create_api_client_injects_websession(hass: HomeAssistant) -> None:
     """create_api_client uses Home Assistant shared aiohttp session."""
     mock_session = MagicMock()

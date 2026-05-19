@@ -22,7 +22,6 @@ from custom_components.ogero.const import (
 )
 
 pytest_plugins = ("pytest_homeassistant_custom_component",)
-pytestmark = pytest.mark.usefixtures("enable_custom_integrations")
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Iterator
@@ -35,6 +34,13 @@ TEST_ACCOUNT_SERIAL_2 = "67890|07654321"
 TEST_SUBENTRY_ID = "01TESTSUBENTRY00000000001"
 TEST_USERNAME = "user"
 TEST_PASSWORD = "pass"  # noqa: S105
+
+
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(
+    enable_custom_integrations: None,
+) -> None:
+    """Load custom_components for every test."""
 
 
 @pytest.fixture
@@ -139,7 +145,7 @@ async def loaded_entry(
     hass: HomeAssistant,
     parent_config_data: dict[str, str],
     subentries_data: tuple[dict[str, Any], ...],
-    _mock_api_client: MagicMock,
+    mock_api_client: MagicMock,  # noqa: ARG001
 ) -> MockConfigEntry:
     """Set up a v2 config entry with one account subentry."""
     entry = MockConfigEntry(
