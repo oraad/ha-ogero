@@ -1,29 +1,29 @@
-name: "Release"
+name: Release
 
 on:
   release:
     types:
-      - "published"
+      - published
 
 permissions: {}
 
 jobs:
   release:
-    name: "Release"
-    runs-on: "ubuntu-latest"
+    name: Release
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: "Checkout the repository"
-        uses: "actions/checkout@v4.2.2"
+      - name: Checkout the repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: "ZIP the integration directory"
-        shell: "bash"
+      - name: ZIP the integration directory
+        shell: bash
         run: |
           cd "${{ github.workspace }}/custom_components/ogero"
           zip ogero.zip -r ./
 
-      - name: "Upload the ZIP file to the release"
-        uses: "softprops/action-gh-release@v2.0.9"
+      - name: Upload the ZIP file to the release
+        uses: softprops/action-gh-release@05c4f37acfe488b4df30f47f3ceff176ae5a2e92 # v2.5.0
         with:
           files: ${{ github.workspace }}/custom_components/ogero/ogero.zip

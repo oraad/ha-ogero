@@ -1,0 +1,2 @@
+# Used by hassfest quality scale strict-typing validation.
+homeassistant.components.ogero.*

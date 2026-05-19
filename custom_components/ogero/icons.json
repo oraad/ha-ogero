@@ -1,0 +1,40 @@
+{
+  "entity": {
+    "sensor": {
+      "quota": {
+        "default": "mdi:format-quote-close"
+      },
+      "speed": {
+        "default": "mdi:speedometer"
+      },
+      "upload": {
+        "default": "mdi:upload"
+      },
+      "download": {
+        "default": "mdi:download"
+      },
+      "total_consumption": {
+        "default": "mdi:sigma"
+      },
+      "extra_consumption": {
+        "default": "mdi:alert"
+      }
+    },
+    "binary_sensor": {
+      "unpaid_bills": {
+        "default": "mdi:check-circle",
+        "state": {
+          "on": "mdi:receipt-text-outline",
+          "off": "mdi:check-circle"
+        }
+      },
+      "over_quota": {
+        "default": "mdi:check-circle",
+        "state": {
+          "on": "mdi:alert",
+          "off": "mdi:check-circle"
+        }
+      }
+    }
+  }
+}

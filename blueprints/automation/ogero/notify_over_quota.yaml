@@ -1,0 +1,33 @@
+blueprint:
+  name: Ogero - Notify when over quota
+  description: >-
+    Send a notification when the Over quota binary sensor turns on for an
+    Ogero phone or DSL line.
+  domain: automation
+  author: Omar Raad
+  homeassistant:
+    min_version: "2026.3.0"
+  input:
+    over_quota_entity:
+      name: Over quota
+      description: Binary sensor for quota exceeded on the Ogero line device.
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+              integration: ogero
+    notify_action:
+      name: Notification action
+      description: Notify service or device action (for example notify.mobile_app_phone).
+      selector:
+        action: {}
+trigger:
+  - platform: state
+    entity_id: !input over_quota_entity
+    from: "off"
+    to: "on"
+action:
+  - action: !input notify_action
+    data:
+      title: Ogero over quota
+      message: Your Ogero line is using data above the monthly quota.

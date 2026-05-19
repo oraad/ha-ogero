@@ -4,14 +4,39 @@ __pycache__
 *.egg-info
 */build/*
 */dist/*
+build/
+dist/
 
+# virtual environments
+.venv*/
+venv*/
+ENV/
+env/
+
+# local secrets
+.env
+.env.*
 
 # misc
 .coverage
-.vscode
+.vscode/
+.idea/
 coverage.xml
-.ruff_cache
+.ruff_cache/
+htmlcov/
+.tox/
+.mypy_cache/
+.pytest_cache/
+.dmypy.json
+.DS_Store
+Thumbs.db
+
+# release packaging
+custom_components/ogero/ogero.zip
 
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+config/.storage/
+config/*.db
+config/home-assistant.log*

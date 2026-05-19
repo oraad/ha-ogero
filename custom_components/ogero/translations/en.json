@@ -2,25 +2,83 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/oraad/ha-ogero",
+                "title": "Connect to Ogero",
+                "description": "Enter your My Ogero credentials.",
                 "data": {
                     "username": "Username",
                     "password": "Password"
                 }
             },
             "account": {
-                "description": "If you need help with the configuration have a look here: https://github.com/oraad/ha-ogero",
+                "title": "Add line",
+                "description": "Choose the first phone or DSL account to monitor.",
                 "data": {
                     "account": "Account"
                 }
+            },
+            "reauth_confirm": {
+                "title": "Reauthenticate",
+                "description": "Update your My Ogero credentials.",
+                "data": {
+                    "username": "Username",
+                    "password": "Password"
+                }
             }
         },
-        "abort": {},
         "error": {
-            "auth": "Username/Password is wrong.",
-            "connection": "Unable to connect to the server.",
-            "unknown": "Unknown error occurred.",
-            "account_already_configured": "Account is already configured"
+            "invalid_auth": "Invalid username or password.",
+            "cannot_connect": "Unable to connect to Ogero.",
+            "unknown": "Unexpected error occurred."
+        },
+        "abort": {
+            "already_configured": "This login is already configured.",
+            "reauth_successful": "Reauthentication was successful."
+        }
+    },
+    "config_subentries": {
+        "account": {
+            "entry_type": "Phone or DSL line",
+            "initiate_flow": {
+                "user": "Add line",
+                "reconfigure": "Change line"
+            },
+            "step": {
+                "user": {
+                    "title": "Add line",
+                    "description": "Choose the phone or DSL account to monitor.",
+                    "data": {
+                        "account": "Account"
+                    }
+                },
+                "reconfigure": {
+                    "title": "Change line",
+                    "description": "Choose a different phone or DSL account for this device.",
+                    "data": {
+                        "account": "Account"
+                    }
+                }
+            },
+            "error": {
+                "account_already_configured": "This account is already configured for this login."
+            }
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Ogero options",
+                "data": {
+                    "scan_interval": "Update interval"
+                }
+            }
+        },
+        "abort": {
+            "success": "Options saved."
+        }
+    },
+    "exceptions": {
+        "poll_failed": {
+            "message": "Failed to fetch data from Ogero."
         }
     },
     "entity": {
@@ -32,13 +90,13 @@
                 "name": "Upload"
             },
             "total_consumption": {
-                "name": "Total Consumption"
+                "name": "Total consumption"
             },
             "extra_consumption": {
-                "name": "Extra Consumption"
+                "name": "Extra consumption"
             },
             "outstanding_balance": {
-                "name": "Outstanding Balance"
+                "name": "Outstanding balance"
             },
             "quota": {
                 "name": "Quota"
@@ -47,7 +105,15 @@
                 "name": "Speed"
             },
             "last_update": {
-                "name": "Last Update"
+                "name": "Last update"
+            }
+        },
+        "binary_sensor": {
+            "unpaid_bills": {
+                "name": "Unpaid bills"
+            },
+            "over_quota": {
+                "name": "Over quota"
             }
         }
     }

@@ -13,8 +13,8 @@ Github is used to host code, to track issues and feature requests, as well as ac
 
 Pull requests are the best way to propose changes to the codebase.
 
-1. Fork the repo and create your branch from `main`.
-2. If you've changed something, update the documentation.
+1. Fork the repo and create your branch from `dev` (or `main` for hotfixes).
+2. If you've changed something, update the documentation (including README **Supported functionality** and related blueprints when entities change).
 3. Make sure your code lints (using `scripts/lint`).
 4. Test you contribution.
 5. Issue that pull request!
