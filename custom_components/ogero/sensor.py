@@ -2,68 +2,84 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
 )
 from homeassistant.components.sensor.const import SensorDeviceClass
+from homeassistant.helpers.entity import EntityCategory
 
-from .const import DOMAIN, LOGGER
+from .const import SUBENTRY_TYPE_ACCOUNT
 from .entity import OgeroEntity
 
+PARALLEL_UPDATES = 0
+
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
+    from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.entity_platform import AddEntitiesCallback
+    from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
     from .coordinator import OgeroDataUpdateCoordinator
+    from .data import OgeroConfigEntry
+
+OgeroSensorValue = int | float | str | datetime | None
 
 SPEED = "speed"
+UPLOAD = "upload"
+DOWNLOAD = "download"
 TOTAL_CONSUMPTION = "total_consumption"
 EXTRA_CONSUMPTION = "extra_consumption"
 QUOTA = "quota"
 LAST_UPDATE = "last_update"
-
 OUTSTANDING_BALANCE = "outstanding_balance"
 
-ENTITY_DESCRIPTIONS = (
+ENTITY_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key=QUOTA,
         translation_key=QUOTA,
         native_unit_of_measurement="GB",
         suggested_display_precision=0,
-        icon="mdi:format-quote-close",
     ),
     SensorEntityDescription(
         key=SPEED,
         translation_key=SPEED,
-        icon="mdi:speedometer",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+    ),
+    SensorEntityDescription(
+        key=UPLOAD,
+        translation_key=UPLOAD,
+        native_unit_of_measurement="GB",
+        suggested_display_precision=1,
+    ),
+    SensorEntityDescription(
+        key=DOWNLOAD,
+        translation_key=DOWNLOAD,
+        native_unit_of_measurement="GB",
+        suggested_display_precision=1,
     ),
     SensorEntityDescription(
         key=TOTAL_CONSUMPTION,
         translation_key=TOTAL_CONSUMPTION,
         native_unit_of_measurement="GB",
         suggested_display_precision=1,
-        icon="mdi:sigma",
     ),
     SensorEntityDescription(
         key=EXTRA_CONSUMPTION,
         translation_key=EXTRA_CONSUMPTION,
         native_unit_of_measurement="GB",
         suggested_display_precision=1,
-        icon="mdi:alert",
     ),
     SensorEntityDescription(
         key=LAST_UPDATE,
         translation_key=LAST_UPDATE,
         device_class=SensorDeviceClass.TIMESTAMP,
-        icon="mdi:update",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
     ),
-)
-
-EXTENDED_ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key=OUTSTANDING_BALANCE,
         translation_key=OUTSTANDING_BALANCE,
@@ -75,61 +91,55 @@ EXTENDED_ENTITY_DESCRIPTIONS = (
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_devices: AddEntitiesCallback
+    _hass: HomeAssistant,
+    entry: OgeroConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_devices(
-        OgeroSensor(
-            coordinator=coordinator,
-            entity_description=entity_description,
+    """Set up Ogero sensors."""
+    for subentry in entry.subentries.values():
+        if subentry.subentry_type != SUBENTRY_TYPE_ACCOUNT:
+            continue
+        coordinator = entry.runtime_data.coordinators.get(subentry.subentry_id)
+        if coordinator is None:
+            continue
+        async_add_entities(
+            [
+                OgeroSensor(coordinator, subentry, entity_description)
+                for entity_description in ENTITY_DESCRIPTIONS
+            ],
+            config_subentry_id=subentry.subentry_id,
         )
-        for entity_description in ENTITY_DESCRIPTIONS
-    )
-
-    async_add_devices(
-        ExtendedOgeroSensor(
-            coordinator=coordinator,
-            entity_description=entity_description,
-        )
-        for entity_description in EXTENDED_ENTITY_DESCRIPTIONS
-    )
 
 
 class OgeroSensor(OgeroEntity, SensorEntity):
-    """Ogero Sensor class."""
+    """Ogero sensor."""
+
+    entity_description: SensorEntityDescription
 
     def __init__(
         self,
         coordinator: OgeroDataUpdateCoordinator,
+        subentry: ConfigSubentry,
         entity_description: SensorEntityDescription,
     ) -> None:
-        """Initialize the sensor class."""
-        super().__init__(coordinator, entity_description.key)
+        """Initialize the sensor."""
+        super().__init__(coordinator, subentry, entity_description.key)
         self.entity_description = entity_description
 
     @property
-    def native_value(self) -> Any:
+    def native_value(self) -> OgeroSensorValue:
         """Return the native value of the sensor."""
-        return self.coordinator.data.get(self.entity_description.key)
-
-
-class ExtendedOgeroSensor(OgeroSensor):
-    """Ogero Extended Sensor class."""
-
-    _attr_extra_state_attributes: ClassVar[dict] = {}
+        data = self.coordinator.data
+        if data is None:
+            return None
+        return getattr(data, self.entity_description.key)
 
     @property
-    def native_value(self) -> Any:
-        """Return the native value of the sensor."""
-        attributes = self.coordinator.data.get("state_attributes").get(
-            self.entity_description.key
-        )
-
-        if attributes is not None:
-            for attribute in attributes:
-                key, value = attribute
-                LOGGER.debug("attribute key: %s, value: %s", key, value)
-                self._attr_extra_state_attributes[key] = value
-
-        return self.coordinator.data.get(self.entity_description.key)
+    def extra_state_attributes(self) -> dict[str, list[dict[str, str]]] | None:
+        """Return extra state attributes."""
+        if self.entity_description.key != OUTSTANDING_BALANCE:
+            return None
+        data = self.coordinator.data
+        if data is None or not data.unpaid_bills:
+            return None
+        return {"unpaid_bills": data.unpaid_bills}

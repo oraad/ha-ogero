@@ -1,89 +1,66 @@
-"""
-Custom integration to integrate Ogero Telekom with Home Assistant.
-
-For more details about this integration, please refer to
-https://github.com/oraad/ha-ogero
-"""
+"""Custom integration to integrate Ogero Telekom with Home Assistant."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from pyogero.asyncio import AuthenticationException
+from homeassistant.loader import async_get_loaded_integration
 
-from .api import (
-    Account,
-    OgeroApiClient,
-    OgeroApiClientAuthenticationError,
-    OgeroApiClientCommunicationError,
-    OgeroApiClientError,
-)
+from .api import create_api_client
 from .const import DOMAIN
-from .coordinator import OgeroDataUpdateCoordinator
+from .data import OgeroData
+from .migrate import async_migrate_entry as async_migrate_entry
+from .platform_helpers import async_setup_account_coordinators, get_update_interval
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
+    from homeassistant.helpers import device_registry as dr
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+    from .data import OgeroConfigEntry
 
-ACCOUNT = "account"
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+]
 
 
-# https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up this integration using UI."""
-    hass.data.setdefault(DOMAIN, {})
-
-    if CONF_USERNAME not in entry.data:
-        raise ConfigEntryAuthFailed
-
-    try:
-        client = OgeroApiClient(
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
-            session=async_get_clientsession(hass),
-        )
-        await client.async_login()
-    except AuthenticationException as exception:
-        raise ConfigEntryAuthFailed from exception
-    except OgeroApiClientAuthenticationError as exception:
-        raise ConfigEntryAuthFailed from exception
-    except OgeroApiClientCommunicationError as exception:
-        raise ConfigEntryNotReady from exception
-    except OgeroApiClientError as exception:
-        raise ConfigEntryNotReady from exception
-
-    if ACCOUNT not in entry.data:
-        raise ConfigEntryAuthFailed
-
-    account = Account.deserialize(entry.data[ACCOUNT])
-
-    hass.data[DOMAIN][entry.entry_id] = coordinator = OgeroDataUpdateCoordinator(
-        hass=hass,
-        account=account,
-        client=client,
+async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bool:
+    """Set up Ogero from a config entry."""
+    client = create_api_client(
+        hass,
+        username=entry.data[CONF_USERNAME],
+        password=entry.data[CONF_PASSWORD],
     )
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
+
+    entry.runtime_data = OgeroData(
+        client=client,
+        integration=await async_get_loaded_integration(hass, entry.domain),
+    )
+    entry.runtime_data.coordinators.clear()
+    await async_setup_account_coordinators(hass, entry, get_update_interval(entry))
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Handle removal of an entry."""
+async def async_unload_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bool:
+    """Unload a config entry."""
     if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
+        entry.runtime_data = None
     return unloaded
 
 
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: OgeroConfigEntry, device: dr.DeviceEntry
+) -> bool:
+    """Remove a device by removing its config subentry."""
+    for identifier in device.identifiers:
+        if identifier[0] != DOMAIN:
+            continue
+        subentry_id = identifier[1]
+        if subentry_id in entry.subentries:
+            hass.config_entries.async_remove_subentry(entry, subentry_id)
+            return True
+    return False

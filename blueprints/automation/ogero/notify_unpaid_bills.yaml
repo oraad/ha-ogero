@@ -1,0 +1,33 @@
+blueprint:
+  name: Ogero - Notify on unpaid bills
+  description: >-
+    Send a notification when the Unpaid bills binary sensor turns on for an
+    Ogero phone or DSL line.
+  domain: automation
+  author: Omar Raad
+  homeassistant:
+    min_version: "2026.3.0"
+  input:
+    unpaid_bills_entity:
+      name: Unpaid bills
+      description: Binary sensor for unpaid bills on the Ogero line device.
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+              integration: ogero
+    notify_action:
+      name: Notification action
+      description: Notify service or device action (for example notify.mobile_app_phone).
+      selector:
+        action: {}
+trigger:
+  - platform: state
+    entity_id: !input unpaid_bills_entity
+    from: "off"
+    to: "on"
+action:
+  - action: !input notify_action
+    data:
+      title: Ogero unpaid bills
+      message: At least one unpaid bill was detected on your Ogero line.

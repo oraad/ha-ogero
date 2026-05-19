@@ -1,17 +1,20 @@
-"""Sample API Client."""
+"""Ogero API client wrapper."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pyogero.asyncio import Account as OgeroAccount
 from pyogero.asyncio import AuthenticationException, BillInfo, ConsumptionInfo, Ogero
+from pyogero.exceptions import OgeroCommunicationError, OgeroParseError
 
 from .const import LOGGER
 
 if TYPE_CHECKING:
     import aiohttp
+    from homeassistant.core import HomeAssistant
 
 
 class OgeroApiClientError(Exception):
@@ -41,20 +44,18 @@ class Account:
     @staticmethod
     def deserialize(serial: str) -> Account:
         """Deserialize account."""
-        internet, phone = serial.split("|")
-        return Account(internet, phone)
+        internet, phone = serial.split("|", 1)
+        return Account(internet=internet, phone=phone)
 
     def __str__(self) -> str:
         """To string."""
-        s = ""
-        if self.phone is not None and self.internet is not None:
-            s = f"DSL# {self.internet} | Phone# {self.phone}"
-        elif self.phone is not None:
-            s = f"Phone# {self.phone}"
-        elif self.internet is not None:
-            s = f"DSL# {self.internet}"
-
-        return s
+        if self.phone and self.internet:
+            return f"DSL# {self.internet} | Phone# {self.phone}"
+        if self.phone:
+            return f"Phone# {self.phone}"
+        if self.internet:
+            return f"DSL# {self.internet}"
+        return ""
 
     def __repr__(self) -> str:
         """To repr."""
@@ -62,7 +63,7 @@ class Account:
 
 
 class AccountMapper:
-    """Account Mapper."""
+    """Map between integration and pyogero account types."""
 
     @staticmethod
     def to_ogero(account: Account | None) -> OgeroAccount | None:
@@ -70,17 +71,25 @@ class AccountMapper:
         if account is None:
             return None
 
-        _account = OgeroAccount()
-        _account.internet = account.internet
-        _account.phone = account.phone
-        return _account
+        return OgeroAccount(phone=account.phone, internet=account.internet)
 
     @staticmethod
     def from_ogero(account: OgeroAccount) -> Account:
         """Map OgeroAccount to Account."""
-        if account is None:
-            return None
-        return Account(account.internet, account.phone)
+        return Account(internet=account.internet, phone=account.phone)
+
+
+def create_api_client(
+    hass: HomeAssistant,
+    username: str,
+    password: str,
+) -> OgeroApiClient:
+    """Create an API client using the Home Assistant aiohttp session."""
+    return OgeroApiClient(
+        username=username,
+        password=password,
+        session=async_get_clientsession(hass),
+    )
 
 
 class OgeroApiClient:
@@ -92,40 +101,58 @@ class OgeroApiClient:
         password: str,
         session: aiohttp.ClientSession,
     ) -> None:
-        """Ogero API Client."""
+        """Initialize the client."""
         self.ogero_client = Ogero(username, password, session)
 
     async def async_login(self) -> bool:
-        """Login to api."""
+        """Login to the API."""
         try:
             return await self.ogero_client.login()
-        except AuthenticationException as authEx:
-            LOGGER.error("login failed")
-            raise OgeroApiClientAuthenticationError(authEx.args) from None
+        except AuthenticationException as auth_ex:
+            LOGGER.error("Login failed")
+            raise OgeroApiClientAuthenticationError(auth_ex.args) from auth_ex
+        except OgeroCommunicationError as ex:
+            raise OgeroApiClientCommunicationError(str(ex)) from ex
+        except OgeroParseError as ex:
+            raise OgeroApiClientError(str(ex)) from ex
 
-    async def async_get_accounts(self, account: Account | None = None) -> list[Account]:
+    async def async_get_accounts(self) -> list[Account]:
         """Get user linked accounts."""
-        _account = AccountMapper.to_ogero(account)
-        accounts = await self.ogero_client.get_accounts(_account)
-        if accounts is None:
-            msg = "No account found."
-            raise OgeroApiClientError(msg) from None
+        try:
+            accounts = await self.ogero_client.get_accounts()
+        except AuthenticationException as auth_ex:
+            raise OgeroApiClientAuthenticationError(auth_ex.args) from auth_ex
+        except OgeroCommunicationError as ex:
+            raise OgeroApiClientCommunicationError(str(ex)) from ex
+        except OgeroParseError as ex:
+            raise OgeroApiClientError(str(ex)) from ex
+
         return [AccountMapper.from_ogero(account) for account in accounts]
 
     async def async_get_bills(self, account: Account) -> BillInfo:
         """Get account bills."""
         _account = AccountMapper.to_ogero(account)
-        bill_infos = await self.ogero_client.get_bill_info(_account)
-        if bill_infos is None:
-            msg = "No bill Info found."
-            raise OgeroApiClientError(msg)
+        try:
+            bill_infos = await self.ogero_client.get_bill_info(_account)
+        except AuthenticationException as auth_ex:
+            raise OgeroApiClientAuthenticationError(auth_ex.args) from auth_ex
+        except OgeroCommunicationError as ex:
+            raise OgeroApiClientCommunicationError(str(ex)) from ex
+        except OgeroParseError as ex:
+            raise OgeroApiClientError(str(ex)) from ex
+
         return bill_infos
 
     async def async_get_consumption(self, account: Account) -> ConsumptionInfo:
         """Get account consumption."""
         _account = AccountMapper.to_ogero(account)
-        consumption_info = await self.ogero_client.get_consumption_info(_account)
-        if consumption_info is None:
-            msg = "No consumption info found."
-            raise OgeroApiClientError(msg)
+        try:
+            consumption_info = await self.ogero_client.get_consumption_info(_account)
+        except AuthenticationException as auth_ex:
+            raise OgeroApiClientAuthenticationError(auth_ex.args) from auth_ex
+        except OgeroCommunicationError as ex:
+            raise OgeroApiClientCommunicationError(str(ex)) from ex
+        except OgeroParseError as ex:
+            raise OgeroApiClientError(str(ex)) from ex
+
         return consumption_info

@@ -1,0 +1,59 @@
+blueprint:
+  name: Ogero - Daily usage summary
+  description: >-
+    Send a daily notification with total consumption, quota, and outstanding
+    balance for an Ogero phone or DSL line.
+  domain: automation
+  author: Omar Raad
+  homeassistant:
+    min_version: "2026.3.0"
+  input:
+    summary_time:
+      name: Time
+      description: Time of day to send the summary.
+      default: "09:00:00"
+      selector:
+        time: {}
+    total_consumption_entity:
+      name: Total consumption
+      description: Total consumption sensor for the Ogero line.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: ogero
+    quota_entity:
+      name: Quota
+      description: Quota sensor for the Ogero line.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: ogero
+    outstanding_balance_entity:
+      name: Outstanding balance
+      description: Outstanding balance sensor for the Ogero line.
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+              integration: ogero
+    notify_action:
+      name: Notification action
+      description: Notify service or device action (for example notify.mobile_app_phone).
+      selector:
+        action: {}
+trigger:
+  - platform: time
+    at: !input summary_time
+action:
+  - variables:
+      consumption: "{{ states(total_consumption_entity) }}"
+      quota: "{{ states(quota_entity) }}"
+      balance: "{{ states(outstanding_balance_entity) }}"
+  - action: !input notify_action
+    data:
+      title: Ogero daily summary
+      message: >-
+        Total consumption: {{ consumption }} GB (quota {{ quota }} GB).
+        Outstanding balance: {{ balance }} LBP.
