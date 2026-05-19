@@ -6,13 +6,10 @@ from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 from homeassistant.config_entries import (
-    SOURCE_USER,
     ConfigFlow,
     ConfigFlowResult,
     ConfigSubentryFlow,
-    FlowType,
     OptionsFlowWithReload,
-    SubentryFlowContext,
     SubentryFlowResult,
 )
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -77,6 +74,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     def __init__(self) -> None:
         """Initialize."""
         self._client: OgeroApiClient | None = None
+        self._login_data: dict[str, Any] | None = None
 
     async def async_step_user(
         self,
@@ -102,10 +100,8 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
                     _username_unique_id(user_input[CONF_USERNAME])
                 )
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(
-                    title=user_input[CONF_USERNAME],
-                    data=user_input,
-                )
+                self._login_data = user_input
+                return await self.async_step_account()
 
         return self.async_show_form(
             step_id="user",
@@ -129,17 +125,55 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
             errors=errors,
         )
 
-    async def async_on_create_entry(self, result: ConfigFlowResult) -> ConfigFlowResult:
-        """Start subentry flow to add the first device."""
-        subentry_result = await self.hass.config_entries.subentries.async_init(
-            (result["result"].entry_id, SUBENTRY_TYPE_ACCOUNT),
-            context=SubentryFlowContext(source=SOURCE_USER),
+    async def async_step_account(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Select the first phone/DSL line for this login."""
+        if self._login_data is None:
+            return self.async_abort(reason="unknown")
+
+        if user_input is not None:
+            account_serial = user_input[CONF_ACCOUNT]
+            account = Account.deserialize(account_serial)
+            return self.async_create_entry(
+                title=self._login_data[CONF_USERNAME],
+                data=self._login_data,
+                subentries=[
+                    {
+                        "title": str(account),
+                        "data": {CONF_ACCOUNT: account_serial},
+                        "subentry_type": SUBENTRY_TYPE_ACCOUNT,
+                        "unique_id": account_serial,
+                    }
+                ],
+            )
+
+        client = self._create_client(
+            self._login_data[CONF_USERNAME],
+            self._login_data[CONF_PASSWORD],
         )
-        result["next_flow"] = (
-            FlowType.CONFIG_SUBENTRIES_FLOW,
-            subentry_result["flow_id"],
+        accounts = await client.async_get_accounts()
+        return self.async_show_form(
+            step_id="account",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_ACCOUNT): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[
+                                SelectOptionDict(
+                                    value=account.serial,
+                                    label=str(account),
+                                )
+                                for account in accounts
+                            ],
+                            mode=SelectSelectorMode.DROPDOWN,
+                            translation_key=CONF_ACCOUNT,
+                        ),
+                    ),
+                }
+            ),
         )
-        return result
 
     async def async_step_reauth(
         self,

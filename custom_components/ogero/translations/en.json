@@ -3,10 +3,17 @@
         "step": {
             "user": {
                 "title": "Connect to Ogero",
-                "description": "Enter your My Ogero credentials. You can add phone or DSL lines after login.",
+                "description": "Enter your My Ogero credentials.",
                 "data": {
                     "username": "Username",
                     "password": "Password"
+                }
+            },
+            "account": {
+                "title": "Add line",
+                "description": "Choose the first phone or DSL account to monitor.",
+                "data": {
+                    "account": "Account"
                 }
             },
             "reauth_confirm": {

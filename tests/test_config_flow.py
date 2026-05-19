@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant import config_entries
-from homeassistant.config_entries import FlowType
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import entity_registry as er
@@ -57,6 +56,13 @@ async def test_user_flow(hass: HomeAssistant) -> None:
         result["flow_id"],
         {CONF_USERNAME: TEST_USERNAME, CONF_PASSWORD: TEST_PASSWORD},
     )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "account"
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL},
+    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["title"] == TEST_USERNAME
     assert result["data"] == {
@@ -65,18 +71,11 @@ async def test_user_flow(hass: HomeAssistant) -> None:
     }
     assert result["version"] == CONFIG_ENTRY_VERSION
 
-    await hass.async_block_till_done(wait_background_tasks=True)
-
-    next_flow = result["next_flow"]
-    assert next_flow[0] == FlowType.CONFIG_SUBENTRIES_FLOW
-
-    result = await hass.config_entries.subentries.async_configure(
-        next_flow[1],
-        {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL},
-    )
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "DSL# 12345 | Phone# 01234567"
-    assert result["data"] == {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL}
+    entry = result["result"]
+    assert len(entry.subentries) == 1
+    subentry = next(iter(entry.subentries.values()))
+    assert subentry.title == "DSL# 12345 | Phone# 01234567"
+    assert subentry.data[CONF_ACCOUNT] == TEST_ACCOUNT_SERIAL
 
 
 async def test_user_flow_invalid_auth(hass: HomeAssistant) -> None:
