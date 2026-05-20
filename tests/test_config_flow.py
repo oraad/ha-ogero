@@ -26,6 +26,7 @@ from custom_components.ogero.const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
 )
+from custom_components.ogero import async_remove_config_entry_device
 from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS
 from tests.conftest import (
     TEST_ACCOUNT_SERIAL,
@@ -284,7 +285,7 @@ async def test_remove_device_adds_disabled_account(
     device = device_reg.async_get_device(identifiers={(DOMAIN, TEST_ACCOUNT_SERIAL)})
     assert device is not None
 
-    assert await hass.config_entries.async_remove_config_entry_device(entry, device)
+    assert await async_remove_config_entry_device(hass, entry, device)
     await hass.async_block_till_done()
 
     entry = hass.config_entries.async_get_entry(entry.entry_id)
