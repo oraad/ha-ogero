@@ -8,7 +8,6 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.ogero.coordinator import OgeroDataUpdateCoordinator
 from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS, QUOTA, OgeroSensor
 from tests.conftest import TEST_ACCOUNT_SERIAL
 
