@@ -17,20 +17,14 @@ from custom_components.ogero.const import (
     SUBENTRY_TYPE_ACCOUNT,
 )
 from custom_components.ogero.migrate import async_migrate_entry
-from tests.conftest import (
-    DUAL_ACCOUNT_SUBENTRY_COUNT,
-    TEST_ACCOUNT_SERIAL,
-    TEST_PASSWORD,
-    TEST_USERNAME,
-)
+from tests.conftest import TEST_ACCOUNT_SERIAL, TEST_PASSWORD, TEST_USERNAME
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-@pytest.mark.usefixtures("mock_api_client")
 async def test_migrate_merge_same_username(hass: HomeAssistant) -> None:
-    """Two v1 entries with the same username merge into one v2 parent."""
+    """Two v1 entries with the same username merge into one v3 parent."""
     account_b = "99999|09999999"
     entry_a = MockConfigEntry(
         domain=DOMAIN,
@@ -74,11 +68,37 @@ async def test_migrate_merge_same_username(hass: HomeAssistant) -> None:
     assert parent.version == CONFIG_ENTRY_VERSION
     assert parent.unique_id == slugify(TEST_USERNAME)
     assert CONF_ACCOUNT not in parent.data
-    assert len(parent.subentries) == DUAL_ACCOUNT_SUBENTRY_COUNT
+    assert len(parent.subentries) == 0
 
-    serials = {
-        sub.unique_id
-        for sub in parent.subentries.values()
-        if sub.subentry_type == SUBENTRY_TYPE_ACCOUNT
-    }
-    assert serials == {TEST_ACCOUNT_SERIAL, account_b}
+
+async def test_migrate_v2_to_v3_clears_subentries(hass: HomeAssistant) -> None:
+    """v2 account subentries are dropped; entry becomes v3 with no subentries."""
+    sub_id = "01TESTSUBENTRY00000000001"
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        version=2,
+        unique_id=slugify(TEST_USERNAME),
+        source=SOURCE_USER,
+        data={
+            CONF_USERNAME: TEST_USERNAME,
+            CONF_PASSWORD: TEST_PASSWORD,
+        },
+        subentries_data=(
+            {
+                "subentry_id": sub_id,
+                "subentry_type": SUBENTRY_TYPE_ACCOUNT,
+                "title": "DSL# 12345 | Phone# 01234567",
+                "unique_id": TEST_ACCOUNT_SERIAL,
+                "data": {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL},
+            },
+        ),
+    )
+    entry.add_to_hass(hass)
+
+    assert await async_migrate_entry(hass, entry)
+    await hass.async_block_till_done()
+
+    parent = hass.config_entries.async_get_entry(entry.entry_id)
+    assert parent is not None
+    assert parent.version == CONFIG_ENTRY_VERSION
+    assert len(parent.subentries) == 0

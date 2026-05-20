@@ -10,13 +10,12 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 
-from .const import SUBENTRY_TYPE_ACCOUNT
+from .api import Account
 from .entity import OgeroEntity
 
 PARALLEL_UPDATES = 0
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigSubentry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -46,18 +45,12 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Ogero binary sensors."""
-    for subentry in entry.subentries.values():
-        if subentry.subentry_type != SUBENTRY_TYPE_ACCOUNT:
-            continue
-        coordinator = entry.runtime_data.coordinators.get(subentry.subentry_id)
-        if coordinator is None:
-            continue
+    for coordinator in entry.runtime_data.coordinators.values():
         async_add_entities(
             [
-                OgeroBinarySensor(coordinator, subentry, entity_description)
+                OgeroBinarySensor(coordinator, coordinator.account, entity_description)
                 for entity_description in BINARY_SENSOR_DESCRIPTIONS
             ],
-            config_subentry_id=subentry.subentry_id,
         )
 
 
@@ -72,11 +65,11 @@ class OgeroBinarySensor(
     def __init__(
         self,
         coordinator: OgeroDataUpdateCoordinator,
-        subentry: ConfigSubentry,
+        account: Account,
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary sensor."""
-        super().__init__(coordinator, subentry, entity_description.key)
+        super().__init__(coordinator, account, entity_description.key)
         self.entity_description = entity_description
 
     @property

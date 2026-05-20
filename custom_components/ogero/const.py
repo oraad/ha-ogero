@@ -8,9 +8,10 @@ from typing import TypedDict
 
 CONF_ACCOUNT = "account"
 CONF_SCAN_INTERVAL = "scan_interval"
+CONF_DISABLED_ACCOUNTS = "disabled_accounts"
 
 SUBENTRY_TYPE_ACCOUNT = "account"
-CONFIG_ENTRY_VERSION = 2
+CONFIG_ENTRY_VERSION = 3
 
 DEFAULT_SCAN_INTERVAL = timedelta(hours=1)
 MIN_SCAN_INTERVAL = timedelta(minutes=15)

@@ -3,17 +3,10 @@
         "step": {
             "user": {
                 "title": "Connect to Ogero",
-                "description": "Enter your My Ogero credentials.",
+                "description": "Enter your My Ogero credentials. All phone and DSL lines for this login will appear as devices after setup.",
                 "data": {
                     "username": "Username",
                     "password": "Password"
-                }
-            },
-            "account": {
-                "title": "Add line",
-                "description": "Choose the first phone or DSL account to monitor.",
-                "data": {
-                    "account": "Account"
                 }
             },
             "reauth_confirm": {
@@ -33,34 +26,6 @@
         "abort": {
             "already_configured": "This login is already configured.",
             "reauth_successful": "Reauthentication was successful."
-        }
-    },
-    "config_subentries": {
-        "account": {
-            "entry_type": "Phone or DSL line",
-            "initiate_flow": {
-                "user": "Add line",
-                "reconfigure": "Change line"
-            },
-            "step": {
-                "user": {
-                    "title": "Add line",
-                    "description": "Choose the phone or DSL account to monitor.",
-                    "data": {
-                        "account": "Account"
-                    }
-                },
-                "reconfigure": {
-                    "title": "Change line",
-                    "description": "Choose a different phone or DSL account for this device.",
-                    "data": {
-                        "account": "Account"
-                    }
-                }
-            },
-            "error": {
-                "account_already_configured": "This account is already configured for this login."
-            }
         }
     },
     "options": {
@@ -83,12 +48,6 @@
     },
     "entity": {
         "sensor": {
-            "download": {
-                "name": "Download"
-            },
-            "upload": {
-                "name": "Upload"
-            },
             "total_consumption": {
                 "name": "Total consumption"
             },

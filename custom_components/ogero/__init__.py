@@ -8,13 +8,16 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import create_api_client
-from .const import DOMAIN
+from .const import CONF_DISABLED_ACCOUNTS, DOMAIN
 from .data import OgeroData
 from .migrate import async_migrate_entry as async_migrate_entry
-from .platform_helpers import async_setup_account_coordinators, get_update_interval
+from .platform_helpers import (
+    async_setup_account_coordinators,
+    get_disabled_account_serials,
+    get_update_interval,
+)
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers import device_registry as dr
 
@@ -26,13 +29,12 @@ PLATFORMS: list[Platform] = [
 ]
 
 
-async def _async_config_entry_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload when parent data, options, or subentries change."""
-    hass.config_entries.async_schedule_reload(entry.entry_id)
-
-
 async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bool:
     """Set up Ogero from a config entry."""
+    old_coordinator_keys: set[str] = set()
+    if entry.runtime_data is not None:
+        old_coordinator_keys = set(entry.runtime_data.coordinators)
+
     client = create_api_client(
         hass,
         username=entry.data[CONF_USERNAME],
@@ -46,7 +48,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> boo
     entry.runtime_data.coordinators.clear()
     await async_setup_account_coordinators(hass, entry, get_update_interval(entry))
 
-    entry.async_on_unload(entry.add_update_listener(_async_config_entry_updated))
+    new_keys = set(entry.runtime_data.coordinators)
+    if old_coordinator_keys and new_keys != old_coordinator_keys:
+        hass.config_entries.async_schedule_reload(entry.entry_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -64,12 +68,21 @@ async def async_unload_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bo
 async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: OgeroConfigEntry, device: dr.DeviceEntry
 ) -> bool:
-    """Remove a device by removing its config subentry."""
+    """Remove a line device: hide that account until options clear disabled_accounts."""
+    if entry.entry_id not in device.config_entries:
+        return False
     for identifier in device.identifiers:
         if identifier[0] != DOMAIN:
             continue
-        subentry_id = identifier[1]
-        if subentry_id in entry.subentries:
-            hass.config_entries.async_remove_subentry(entry, subentry_id)
-            return True
+        account_serial = identifier[1]
+        disabled = sorted(get_disabled_account_serials(entry))
+        if account_serial in disabled:
+            return False
+        disabled.append(account_serial)
+        hass.config_entries.async_update_entry(
+            entry,
+            options={**dict(entry.options), CONF_DISABLED_ACCOUNTS: disabled},
+        )
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+        return True
     return False

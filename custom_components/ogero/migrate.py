@@ -6,20 +6,12 @@ from copy import deepcopy
 from types import MappingProxyType
 from typing import TYPE_CHECKING, cast
 
-from homeassistant.config_entries import ConfigSubentry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
 
-from .api import Account
-from .const import (
-    CONF_ACCOUNT,
-    CONFIG_ENTRY_VERSION,
-    DOMAIN,
-    LOGGER,
-    SUBENTRY_TYPE_ACCOUNT,
-)
+from .const import CONF_ACCOUNT, CONFIG_ENTRY_VERSION, DOMAIN, LOGGER, SUBENTRY_TYPE_ACCOUNT
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -32,81 +24,90 @@ def _username_unique_id(username: str) -> str:
     return cast("str", slugify(username))
 
 
+def _is_parent_ogero_entry(other: OgeroConfigEntry, username_unique_id: str) -> bool:
+    """True if this config entry is a parent login (v2/v3), not a v1 row."""
+    return (
+        other.domain == DOMAIN
+        and other.unique_id == username_unique_id
+        and CONF_USERNAME in other.data
+        and CONF_ACCOUNT not in other.data
+    )
+
+
 def _find_parent_entry(
     hass: HomeAssistant, username_unique_id: str, exclude_entry_id: str
 ) -> OgeroConfigEntry | None:
-    """Return an existing v2 parent entry for this login, if any."""
+    """Return an existing parent entry for this login, if any."""
     for other in hass.config_entries.async_entries(DOMAIN):
         if other.entry_id == exclude_entry_id:
             continue
-        if (
-            other.version >= CONFIG_ENTRY_VERSION
-            and other.unique_id == username_unique_id
-        ):
+        if _is_parent_ogero_entry(other, username_unique_id):
             return other
     return None
 
 
-def _get_subentry_id_for_account(
-    entry: OgeroConfigEntry, account_serial: str
-) -> str | None:
-    """Return subentry id for an account serial on this entry."""
-    for subentry in entry.subentries.values():
-        if (
-            subentry.subentry_type == SUBENTRY_TYPE_ACCOUNT
-            and subentry.unique_id == account_serial
-        ):
-            return cast("str", subentry.subentry_id)
-    return None
-
-
-def _add_account_subentry(
+def _rehome_entities_v2_to_v3(
     hass: HomeAssistant,
-    entry: OgeroConfigEntry,
-    account_serial: str,
-) -> str:
-    """Add an account subentry and return its id."""
-    existing_id = _get_subentry_id_for_account(entry, account_serial)
-    if existing_id:
-        LOGGER.warning(
-            "Account %s already configured on entry %s during migration",
-            account_serial,
-            entry.entry_id,
-        )
-        return existing_id
-
-    account = Account.deserialize(account_serial)
-    subentry = ConfigSubentry(
-        data=MappingProxyType({CONF_ACCOUNT: account_serial}),
-        subentry_type=SUBENTRY_TYPE_ACCOUNT,
-        title=str(account),
-        unique_id=account_serial,
-    )
-    hass.config_entries.async_add_subentry(entry, subentry)
-    return cast("str", subentry.subentry_id)
-
-
-def _rehome_entities(
-    hass: HomeAssistant,
-    old_entry_id: str,
-    new_entry_id: str,
-    account_serial: str,
-    subentry_id: str,
+    entry_id: str,
+    subentry_id_to_serial: dict[str, str],
 ) -> None:
-    """Move entity registry entries to the parent entry and subentry."""
+    """Rewrite entity unique_ids from subentry ULID to account serial."""
     entity_reg = er.async_get(hass)
-    for entity in er.async_entries_for_config_entry(entity_reg, old_entry_id):
+    for entity in er.async_entries_for_config_entry(entity_reg, entry_id):
         if not entity.unique_id:
             continue
+        for sub_id, serial in subentry_id_to_serial.items():
+            if not entity.unique_id.startswith(f"{sub_id}_"):
+                continue
+            suffix = entity.unique_id[len(sub_id) + 1 :]
+            entity_reg.async_update_entity(
+                entity.entity_id,
+                new_unique_id=f"{serial}_{suffix}",
+                config_subentry_id=None,
+            )
+            break
 
+
+def _rehome_devices_v2_to_v3(
+    hass: HomeAssistant,
+    entry_id: str,
+    subentry_id_to_serial: dict[str, str],
+) -> None:
+    """Rewrite device identifiers from subentry id to account serial."""
+    device_reg = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(device_reg, entry_id):
+        new_identifiers = deepcopy(device.identifiers)
+        for sub_id, serial in subentry_id_to_serial.items():
+            if (DOMAIN, sub_id) in new_identifiers:
+                new_identifiers.discard((DOMAIN, sub_id))
+                new_identifiers.add((DOMAIN, serial))
+                device_reg.async_update_device(
+                    device.id,
+                    new_identifiers=new_identifiers,
+                    remove_config_subentry_id=sub_id,
+                )
+                break
+
+
+def _rehome_entities_v1_to_v3(
+    hass: HomeAssistant,
+    source_entry_id: str,
+    target_entry_id: str,
+    account_serial: str,
+    old_id_prefix: str,
+) -> None:
+    """Map v1-style entity unique_ids to account_serial_* on target entry."""
+    entity_reg = er.async_get(hass)
+    for entity in er.async_entries_for_config_entry(entity_reg, source_entry_id):
+        if not entity.unique_id:
+            continue
+        uid = entity.unique_id
         new_unique_id: str | None = None
-        if entity.unique_id.startswith(f"{account_serial}_"):
-            suffix = entity.unique_id[len(account_serial) + 1 :]
-            new_unique_id = f"{subentry_id}_{suffix}"
-        elif entity.unique_id.startswith(f"{old_entry_id}_"):
-            suffix = entity.unique_id[len(old_entry_id) + 1 :]
-            new_unique_id = f"{subentry_id}_{suffix}"
-
+        if uid.startswith(f"{account_serial}_"):
+            new_unique_id = uid
+        elif uid.startswith(f"{old_id_prefix}_"):
+            suffix = uid[len(old_id_prefix) + 1 :]
+            new_unique_id = f"{account_serial}_{suffix}"
         if new_unique_id is None:
             LOGGER.warning(
                 "Skipping entity %s with unexpected unique_id %s during migration",
@@ -114,54 +115,48 @@ def _rehome_entities(
                 entity.unique_id,
             )
             continue
-
         entity_reg.async_update_entity(
             entity.entity_id,
-            config_entry_id=new_entry_id,
-            config_subentry_id=subentry_id,
+            config_entry_id=target_entry_id,
             new_unique_id=new_unique_id,
+            config_subentry_id=None,
         )
 
 
-def _rehome_devices(
+def _rehome_devices_v1_to_v3(
     hass: HomeAssistant,
-    old_entry_id: str,
-    new_entry_id: str,
+    source_entry_id: str,
+    target_entry_id: str,
     account_serial: str,
-    subentry_id: str,
 ) -> None:
-    """Update device identifiers and subentry association."""
+    """Move devices from a v1 child entry onto the parent using account serial."""
     device_reg = dr.async_get(hass)
-    for device in dr.async_entries_for_config_entry(device_reg, old_entry_id):
+    for device in dr.async_entries_for_config_entry(device_reg, source_entry_id):
         new_identifiers = deepcopy(device.identifiers)
-        updated = False
+        changed = False
         for identifier in list(new_identifiers):
             domain, value = identifier
             if domain != DOMAIN:
                 continue
-            if value in {old_entry_id, account_serial}:
+            if value in {source_entry_id, account_serial}:
                 new_identifiers.discard(identifier)
-                new_identifiers.add((DOMAIN, subentry_id))
-                updated = True
-
-        if not updated:
+                new_identifiers.add((DOMAIN, account_serial))
+                changed = True
+        if not changed:
             continue
-
         device_reg.async_update_device(
             device.id,
             new_identifiers=new_identifiers,
-            add_config_entry_id=new_entry_id,
-            add_config_subentry_id=subentry_id,
+            add_config_entry_id=target_entry_id,
         )
         device_reg.async_update_device(
             device.id,
-            remove_config_entry_id=new_entry_id,
-            remove_config_subentry_id=None,
+            remove_config_entry_id=source_entry_id,
         )
 
 
-async def _migrate_v1_to_v2(hass: HomeAssistant, entry: OgeroConfigEntry) -> None:
-    """Migrate a v1 entry to v2 parent + account subentry."""
+async def _migrate_v1_to_v3(hass: HomeAssistant, entry: OgeroConfigEntry) -> None:
+    """Migrate a v1 entry to v3 (credentials only, no subentries)."""
     username = entry.data[CONF_USERNAME]
     password = entry.data[CONF_PASSWORD]
     account_serial = entry.data[CONF_ACCOUNT]
@@ -170,22 +165,19 @@ async def _migrate_v1_to_v2(hass: HomeAssistant, entry: OgeroConfigEntry) -> Non
     parent_entry = _find_parent_entry(hass, username_unique_id, entry.entry_id)
 
     if parent_entry is not None:
-        subentry_id = _add_account_subentry(hass, parent_entry, account_serial)
-        _rehome_entities(
+        _rehome_entities_v1_to_v3(
             hass,
             entry.entry_id,
             parent_entry.entry_id,
             account_serial,
-            subentry_id,
+            entry.entry_id,
         )
-        _rehome_devices(
+        _rehome_devices_v1_to_v3(
             hass,
             entry.entry_id,
             parent_entry.entry_id,
             account_serial,
-            subentry_id,
         )
-        # Schedule removal; awaiting here deadlocks inside async_setup.
         hass.async_create_task(hass.config_entries.async_remove(entry.entry_id))
         return
 
@@ -199,9 +191,36 @@ async def _migrate_v1_to_v2(hass: HomeAssistant, entry: OgeroConfigEntry) -> Non
             CONF_PASSWORD: password,
         },
     )
-    subentry_id = _add_account_subentry(hass, entry, account_serial)
-    _rehome_entities(hass, entry.entry_id, entry.entry_id, account_serial, subentry_id)
-    _rehome_devices(hass, entry.entry_id, entry.entry_id, account_serial, subentry_id)
+    _rehome_entities_v1_to_v3(
+        hass,
+        entry.entry_id,
+        entry.entry_id,
+        account_serial,
+        entry.entry_id,
+    )
+    _rehome_devices_v1_to_v3(hass, entry.entry_id, entry.entry_id, account_serial)
+
+
+async def _migrate_v2_to_v3(hass: HomeAssistant, entry: OgeroConfigEntry) -> None:
+    """Migrate v2 subentries to v3 (API-driven accounts, no subentries)."""
+    subentry_id_to_serial: dict[str, str] = {}
+    for sub in entry.subentries.values():
+        if sub.subentry_type != SUBENTRY_TYPE_ACCOUNT:
+            continue
+        serial = cast("str", sub.data.get(CONF_ACCOUNT) or sub.unique_id or "")
+        if not serial:
+            continue
+        subentry_id_to_serial[sub.subentry_id] = serial
+
+    if subentry_id_to_serial:
+        _rehome_entities_v2_to_v3(hass, entry.entry_id, subentry_id_to_serial)
+        _rehome_devices_v2_to_v3(hass, entry.entry_id, subentry_id_to_serial)
+
+    hass.config_entries.async_update_entry(
+        entry,
+        version=CONFIG_ENTRY_VERSION,
+        subentries=MappingProxyType({}),
+    )
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bool:
@@ -210,6 +229,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> b
         return False
 
     if entry.version == 1:
-        await _migrate_v1_to_v2(hass, entry)
+        await _migrate_v1_to_v3(hass, entry)
+    elif entry.version == 2:
+        await _migrate_v2_to_v3(hass, entry)
 
     return True

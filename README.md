@@ -35,9 +35,8 @@ Restart Home Assistant after copying files.
 1. Go to **Settings → Devices & services → Add integration**.
 2. Search for **Ogero**.
 3. Enter your My Ogero username and password.
-4. Select the first phone or DSL line to monitor (you can add more lines afterward).
 
-One integration card is created per Ogero login. Each phone or DSL line appears as its own device.
+One integration card is created per Ogero login. Every phone or DSL line returned by My Ogero for that login appears as its own device. New lines show up after a reload when Ogero lists them for the account.
 
 ### Configuration parameters
 
@@ -45,15 +44,13 @@ One integration card is created per Ogero login. Each phone or DSL line appears 
 |-----------|--------|-------------|
 | Username | Config flow | My Ogero login username |
 | Password | Config flow | My Ogero login password |
-| Account | Device subentry | Phone or DSL line to monitor (per device) |
 | Update interval | Integration options | Poll interval (default 1 hour, minimum 15 minutes) |
 
 ### Managing lines and credentials
 
 | Action | How |
 |--------|-----|
-| Add another line | **Configure → Add device** on the integration card |
-| Change which line a device uses | Device **Configure** (subentry reconfigure) |
+| Hide a line from Home Assistant | Delete that line’s device under **Settings → Devices & services**. The line stays hidden for this login until you remove and re-add the integration or clear the stored `disabled_accounts` list (advanced). |
 | Change password | **Reauthenticate** on the integration card |
 | Change poll interval | **Configure → Ogero options** |
 
@@ -61,7 +58,7 @@ One integration card is created per Ogero login. Each phone or DSL line appears 
 
 1. Open **Settings → Devices & services → Ogero**.
 2. Select the integration and choose **Delete** (removes the login and all line devices).
-3. To remove a single line only, delete that device from **Settings → Devices & services** (removes the subentry for that account).
+3. To hide a single line, delete that device from **Settings → Devices & services**. To show that line again later, remove and re-add the Ogero integration, or clear `disabled_accounts` on the config entry (advanced).
 4. If installed via HACS, uninstall **Ogero** from HACS and restart Home Assistant.
 5. For a manual install, delete `config/custom_components/ogero` and restart.
 
@@ -72,7 +69,7 @@ This integration uses **cloud polling** (`iot_class: cloud_polling`). Ogero does
 - **Default poll interval:** 1 hour (configurable under **Configure → Ogero options**).
 - **Allowed range:** 15 minutes minimum, 24 hours maximum.
 - **Per line:** Each phone or DSL device has its own coordinator; all sensors on that device update together when its poll completes.
-- **Availability:** If a poll fails, entities on that line become unavailable until the next successful update. Use **Reauthenticate** if your My Ogero password changed.
+- **Availability:** After at least one successful poll, entities **stay available** and keep showing the **last successful** values if a later poll fails (network or portal errors). Diagnostics still report `last_update_success` and any exception for the latest attempt. If you never get a successful poll for a line, entities stay **unavailable** until one succeeds. Use **Reauthenticate** if your My Ogero password changed.
 - **Recommendation:** Avoid very short intervals. Data is fetched via the same web portal as the My Ogero app ([pyogero](https://github.com/oraad/pyogero)); frequent polling adds load on Ogero’s servers without giving true real-time usage.
 
 ## Supported accounts and lines
@@ -101,7 +98,6 @@ Quick reference for entities on each line device.
 |--------|-------------|
 | Quota | Monthly quota (GB) |
 | Speed | Connection speed label |
-| Upload / Download | Usage (GB) |
 | Total consumption | Total usage (GB) |
 | Extra consumption | Usage above quota (GB) |
 | Last update | Last Ogero data refresh |
@@ -127,14 +123,6 @@ Detailed reference for each entity on an Ogero line device. There are no buttons
 - **Speed**
   - **Description:** Connection speed label as shown on the portal (for example `8 Mbps`).
   - **Remarks:** Diagnostic entity; disabled by default (enable in the entity registry if needed). Text sensor; not a numeric speed test.
-
-- **Upload**
-  - **Description:** Upload usage for the current billing period in GB.
-  - **Remarks:** One decimal place suggested in the UI.
-
-- **Download**
-  - **Description:** Download usage for the current billing period in GB.
-  - **Remarks:** One decimal place suggested in the UI.
 
 - **Total consumption**
   - **Description:** Combined upload and download usage in GB.
@@ -224,13 +212,15 @@ Ogero sensors show **unavailable** for one or all lines.
 
 #### Description
 
-The last poll failed (network, parse error, or expired login).
+No successful poll has produced data yet for that line (first setup, wrong credentials, or persistent errors), or the integration entry was reloaded before any success.
 
 #### Resolution
 
 1. Check **Settings → System → Logs** for `custom_components.ogero` errors.
 2. Use **Reauthenticate** on the integration if credentials expired.
 3. Avoid very short poll intervals; try the default 1 hour if you suspect rate limiting.
+
+If entities **do** show values but you expect fresher data, open **Download diagnostics** on the integration card: when `last_update_success` is false, the last poll failed but the UI is intentionally showing the previous snapshot until the next successful update.
 
 ### Account already configured
 
@@ -260,20 +250,20 @@ An integration entry already exists for this My Ogero username.
 
 Use the existing Ogero card, or delete the old entry before adding it again.
 
-### New line added but no entities
+### New line in My Ogero but no new device
 
 #### Symptom
 
-You added a device via **Configure → Add device** but no new sensors appear.
+A line appears in My Ogero but not in Home Assistant.
 
 #### Description
 
-Platform setup may not have completed after the subentry was created.
+Devices are created from the account list returned at setup/reload. A short delay or a failed poll can leave the UI out of date.
 
 #### Resolution
 
 1. Reload the integration (**Configure → Reload** on the integration card, or restart Home Assistant).
-2. If the problem persists, remove the line device and add it again.
+2. If the line was previously deleted in Home Assistant, remove and re-add the integration (or clear `disabled_accounts` on the config entry) so that serial is no longer excluded.
 
 ### Data feels stale
 
