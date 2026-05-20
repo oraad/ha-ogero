@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 from zoneinfo import ZoneInfo
 
@@ -14,12 +14,7 @@ from pyogero.types import Bill, BillAmount, BillInfo, BillStatus, ConsumptionInf
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ogero.api import Account
-from custom_components.ogero.const import (
-    CONF_ACCOUNT,
-    CONFIG_ENTRY_VERSION,
-    DOMAIN,
-    SUBENTRY_TYPE_ACCOUNT,
-)
+from custom_components.ogero.const import CONFIG_ENTRY_VERSION, DOMAIN
 from custom_components.ogero.coordinator import (
     OgeroCoordinatorData,
     OgeroDataUpdateCoordinator,
@@ -33,9 +28,8 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 TEST_ACCOUNT_SERIAL = "12345|01234567"
-DUAL_ACCOUNT_SUBENTRY_COUNT = 2
 TEST_ACCOUNT_SERIAL_2 = "67890|07654321"
-TEST_SUBENTRY_ID = "01TESTSUBENTRY00000000001"
+MOCK_API_ACCOUNT_COUNT = 2
 TEST_USERNAME = "user"
 TEST_PASSWORD = "pass"  # noqa: S105
 
@@ -59,8 +53,6 @@ def consumption_info() -> ConsumptionInfo:
     return ConsumptionInfo(
         speed="8 Mbps",
         quota=500,
-        upload=10.0,
-        download=120.0,
         total_consumption=130.0,
         extra_consumption=5.0,
         last_update=datetime(2024, 6, 1, 12, 0, tzinfo=ZoneInfo("Asia/Beirut")),
@@ -86,8 +78,6 @@ def _coordinator_data(
         quota=consumption_info.quota,
         last_update=consumption_info.last_update,
         speed=consumption_info.speed,
-        upload=consumption_info.upload,
-        download=consumption_info.download,
         total_consumption=consumption_info.total_consumption,
         extra_consumption=extra_consumption,
         outstanding_balance=int(bill_info.total_outstanding.amount),
@@ -146,12 +136,11 @@ def mock_setup_entry() -> AsyncGenerator[AsyncMock]:
         yield mock_setup
 
 
-@pytest.fixture(name="mock_api_client")
-def _mock_api_client(
+def _build_mock_api_client(
     consumption_info: ConsumptionInfo,
     bill_info: BillInfo,
-) -> Iterator[MagicMock]:
-    """Patch API client factory with successful responses."""
+) -> MagicMock:
+    """Return a mock Ogero API client with canned responses."""
     accounts = [
         Account(internet="12345", phone="01234567"),
         Account(internet="67890", phone="07654321"),
@@ -161,17 +150,30 @@ def _mock_api_client(
     mock_client.async_get_accounts = AsyncMock(return_value=accounts)
     mock_client.async_get_consumption = AsyncMock(return_value=consumption_info)
     mock_client.async_get_bills = AsyncMock(return_value=bill_info)
-    with (
-        patch(
-            "custom_components.ogero.config_flow.create_api_client",
-            return_value=mock_client,
-        ),
-        patch(
-            "custom_components.ogero.__init__.create_api_client",
-            return_value=mock_client,
-        ),
-    ):
-        yield mock_client
+    return mock_client
+
+
+def _patch_create_api_client(
+    monkeypatch: pytest.MonkeyPatch, mock_client: MagicMock
+) -> None:
+    """Patch create_api_client at the API module (single call site for setup)."""
+
+    def _factory(*_args: object, **_kwargs: object) -> MagicMock:
+        return mock_client
+
+    monkeypatch.setattr("custom_components.ogero.api.create_api_client", _factory)
+
+
+@pytest.fixture(name="mock_api_client")
+def _mock_api_client(
+    consumption_info: ConsumptionInfo,
+    bill_info: BillInfo,
+    monkeypatch: pytest.MonkeyPatch,
+) -> MagicMock:
+    """Patch API client factory with successful responses."""
+    mock_client = _build_mock_api_client(consumption_info, bill_info)
+    _patch_create_api_client(monkeypatch, mock_client)
+    return mock_client
 
 
 @pytest.fixture
@@ -184,34 +186,18 @@ def parent_config_data() -> dict[str, str]:
 
 
 @pytest.fixture
-def subentries_data() -> tuple[dict[str, Any], ...]:
-    """Return account subentry data for tests."""
-    return (
-        {
-            "data": {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL},
-            "subentry_id": TEST_SUBENTRY_ID,
-            "subentry_type": SUBENTRY_TYPE_ACCOUNT,
-            "title": "DSL# 12345 | Phone# 01234567",
-            "unique_id": TEST_ACCOUNT_SERIAL,
-        },
-    )
-
-
-@pytest.fixture
 async def loaded_entry(
     hass: HomeAssistant,
     parent_config_data: dict[str, str],
-    subentries_data: tuple[dict[str, Any], ...],
     mock_api_client: MagicMock,  # noqa: ARG001
 ) -> MockConfigEntry:
-    """Set up a v2 config entry with one account subentry."""
+    """Set up a v3 config entry (API-driven accounts)."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         source=SOURCE_USER,
         data=parent_config_data,
         unique_id=slugify(TEST_USERNAME),
         version=CONFIG_ENTRY_VERSION,
-        subentries_data=subentries_data,
     )
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)

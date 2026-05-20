@@ -8,7 +8,7 @@ import pytest
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
 
-from tests.conftest import TEST_SUBENTRY_ID
+from tests.conftest import TEST_ACCOUNT_SERIAL
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -30,12 +30,12 @@ async def test_diagnostic_entities_disabled_by_default(
 ) -> None:
     """Speed and last update are diagnostic and disabled by default."""
     assert loaded_entry.entry_id
-    last_update = _registry_entry(hass, f"{TEST_SUBENTRY_ID}_last_update")
+    last_update = _registry_entry(hass, f"{TEST_ACCOUNT_SERIAL}_last_update")
     assert last_update is not None
     assert last_update.entity_category is EntityCategory.DIAGNOSTIC
     assert last_update.disabled
 
-    speed = _registry_entry(hass, f"{TEST_SUBENTRY_ID}_speed")
+    speed = _registry_entry(hass, f"{TEST_ACCOUNT_SERIAL}_speed")
     assert speed is not None
     assert speed.entity_category is EntityCategory.DIAGNOSTIC
     assert speed.disabled
@@ -48,7 +48,7 @@ async def test_primary_sensors_enabled_by_default(
     """Core usage sensors are enabled by default."""
     assert loaded_entry.entry_id
     for key in ("total_consumption", "quota", "outstanding_balance"):
-        reg_entry = _registry_entry(hass, f"{TEST_SUBENTRY_ID}_{key}")
+        reg_entry = _registry_entry(hass, f"{TEST_ACCOUNT_SERIAL}_{key}")
         assert reg_entry is not None
         assert reg_entry.entity_category is None
         assert not reg_entry.disabled

@@ -7,12 +7,11 @@ from typing import TYPE_CHECKING
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api import Account
-from .const import ATTRIBUTION, CONF_ACCOUNT, DOMAIN, NAME, VERSION
+from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
 from .coordinator import OgeroDataUpdateCoordinator
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigSubentry
+    from .api import Account
 
 
 class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):  # type: ignore[misc]
@@ -24,18 +23,23 @@ class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):  # type: ignor
     def __init__(
         self,
         coordinator: OgeroDataUpdateCoordinator,
-        subentry: ConfigSubentry,
+        account: Account,
         key: str,
     ) -> None:
         """Initialize."""
         super().__init__(coordinator)
         self._key = key
-        self._subentry = subentry
-        self._attr_unique_id = f"{subentry.subentry_id}_{key}"
-        account = Account.deserialize(subentry.data[CONF_ACCOUNT])
+        self._account = account
+        serial = account.serial
+        self._attr_unique_id = f"{serial}_{key}"
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, subentry.subentry_id)},
+            identifiers={(DOMAIN, serial)},
             name=str(account),
             manufacturer=NAME,
             model=VERSION,
         )
+
+    @property
+    def available(self) -> bool:
+        """Show last successful snapshot when a poll fails (UpdateFailed)."""
+        return self.coordinator.data is not None

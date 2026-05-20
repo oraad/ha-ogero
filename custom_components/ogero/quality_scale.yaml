@@ -32,7 +32,9 @@ rules:
   config-entry-unloading: done
   docs-configuration-parameters: done
   docs-installation-parameters: done
-  entity-unavailable: done
+  entity-unavailable:
+    status: done
+    comment: Unavailable only until the first successful poll; later failures keep the last snapshot visible.
   integration-owner: done
   log-when-unavailable: done
   parallel-updates: done
@@ -57,14 +59,16 @@ rules:
   docs-use-cases: done
   dynamic-devices:
     status: exempt
-    comment: Lines are added via config subentries, not discovery.
+    comment: Lines come from My Ogero after login; setup/reload refreshes coordinators when the API returns new serials.
   entity-category: done
   entity-device-class: done
   entity-disabled-by-default: done
   entity-translations: done
   exception-translations: done
   icon-translations: done
-  reconfiguration-flow: done
+  reconfiguration-flow:
+    status: exempt
+    comment: No per-line reconfigure flow; lines are API-driven. Poll interval remains under options; credentials use reauth.
   repair-issues:
     status: exempt
     comment: Reauthentication flow covers invalid credentials.

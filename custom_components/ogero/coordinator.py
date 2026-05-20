@@ -26,8 +26,6 @@ class OgeroCoordinatorData:
 
     quota: int
     speed: str
-    upload: float
-    download: float
     total_consumption: float
     extra_consumption: float
     last_update: datetime | None
@@ -47,7 +45,7 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  
         hass: HomeAssistant,
         config_entry: OgeroConfigEntry,
         account: Account,
-        subentry_id: str,
+        account_key: str,
         *,
         update_interval: timedelta,
     ) -> None:
@@ -55,12 +53,12 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  
         super().__init__(
             hass,
             LOGGER,
-            name=f"{DOMAIN}_{subentry_id}",
+            name=f"{DOMAIN}_{account_key}",
             update_interval=update_interval,
             config_entry=config_entry,
         )
         self.account = account
-        self.subentry_id = subentry_id
+        self.account_key = account_key
 
     async def _async_update_data(self) -> OgeroCoordinatorData:
         """Update data via the API client."""
@@ -95,8 +93,6 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  
             quota=consumption.quota,
             last_update=consumption.last_update,
             speed=consumption.speed,
-            upload=consumption.upload,
-            download=consumption.download,
             total_consumption=consumption.total_consumption,
             extra_consumption=extra_consumption,
             outstanding_balance=int(bill_info.total_outstanding.amount),
