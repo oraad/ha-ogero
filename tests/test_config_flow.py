@@ -70,7 +70,7 @@ async def test_user_flow(hass: HomeAssistant) -> None:
 
 async def test_user_flow_invalid_auth(hass: HomeAssistant) -> None:
     """Test invalid credentials."""
-    with patch("custom_components.ogero.config_flow.create_api_client") as mock_create:
+    with patch("custom_components.ogero.api.create_api_client") as mock_create:
         mock_client = mock_create.return_value
         mock_client.async_login = AsyncMock(
             side_effect=OgeroApiClientAuthenticationError("auth failed")
@@ -90,7 +90,7 @@ async def test_user_flow_invalid_auth(hass: HomeAssistant) -> None:
 
 async def test_user_flow_cannot_connect(hass: HomeAssistant) -> None:
     """Test connection errors."""
-    with patch("custom_components.ogero.config_flow.create_api_client") as mock_create:
+    with patch("custom_components.ogero.api.create_api_client") as mock_create:
         mock_client = mock_create.return_value
         mock_client.async_login = AsyncMock(
             side_effect=OgeroApiClientCommunicationError("offline")

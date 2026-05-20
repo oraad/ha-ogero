@@ -20,12 +20,12 @@ from homeassistant.helpers.selector import (
 )
 from homeassistant.util import slugify
 
+from . import api
 from .api import (
     OgeroApiClient,
     OgeroApiClientAuthenticationError,
     OgeroApiClientCommunicationError,
     OgeroApiClientError,
-    create_api_client,
 )
 from .const import (
     CONF_SCAN_INTERVAL,
@@ -197,7 +197,7 @@ class OgeroFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg,misc
 
     def _create_client(self, username: str, password: str) -> OgeroApiClient:
         if self._client is None:
-            self._client = create_api_client(
+            self._client = api.create_api_client(
                 self.hass, username=username, password=password
             )
         return self._client

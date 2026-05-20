@@ -153,24 +153,15 @@ def _build_mock_api_client(
     return mock_client
 
 
-def _patch_create_api_client(monkeypatch: pytest.MonkeyPatch, mock_client: MagicMock) -> None:
-    """Patch create_api_client at every import site used in tests."""
+def _patch_create_api_client(
+    monkeypatch: pytest.MonkeyPatch, mock_client: MagicMock
+) -> None:
+    """Patch create_api_client at the API module (single call site for setup)."""
 
     def _factory(*_args: object, **_kwargs: object) -> MagicMock:
         return mock_client
 
-    monkeypatch.setattr(
-        "custom_components.ogero.api.create_api_client",
-        _factory,
-    )
-    monkeypatch.setattr(
-        "custom_components.ogero.config_flow.create_api_client",
-        _factory,
-    )
-    monkeypatch.setattr(
-        "custom_components.ogero.__init__.create_api_client",
-        _factory,
-    )
+    monkeypatch.setattr("custom_components.ogero.api.create_api_client", _factory)
 
 
 @pytest.fixture(name="mock_api_client")

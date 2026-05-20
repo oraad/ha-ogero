@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.loader import async_get_loaded_integration
 
-from .api import create_api_client
+from . import api
 from .const import CONF_DISABLED_ACCOUNTS, DOMAIN
 from .data import OgeroData
 from .migrate import async_migrate_entry as async_migrate_entry
@@ -37,7 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> boo
     if runtime is not None:
         old_coordinator_keys = set(runtime.coordinators)
 
-    client = create_api_client(
+    client = api.create_api_client(
         hass,
         username=entry.data[CONF_USERNAME],
         password=entry.data[CONF_PASSWORD],
