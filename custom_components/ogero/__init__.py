@@ -32,8 +32,9 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> bool:
     """Set up Ogero from a config entry."""
     old_coordinator_keys: set[str] = set()
-    if entry.runtime_data is not None:
-        old_coordinator_keys = set(entry.runtime_data.coordinators)
+    runtime = getattr(entry, "runtime_data", None)
+    if runtime is not None:
+        old_coordinator_keys = set(runtime.coordinators)
 
     client = create_api_client(
         hass,

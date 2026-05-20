@@ -8,6 +8,7 @@ import pytest
 
 from custom_components.ogero.diagnostics import async_get_config_entry_diagnostics
 from tests.conftest import (
+    MOCK_API_ACCOUNT_COUNT,
     TEST_ACCOUNT_SERIAL,
     TEST_ACCOUNT_SERIAL_2,
     TEST_PASSWORD,
@@ -28,6 +29,6 @@ async def test_diagnostics(hass: HomeAssistant, loaded_entry: OgeroConfigEntry) 
     assert TEST_PASSWORD not in dumped
     assert TEST_USERNAME not in dumped
     assert result["integration_version"]
-    assert len(result["accounts"]) == 2
+    assert len(result["accounts"]) == MOCK_API_ACCOUNT_COUNT
     serials = {acc["account_serial"] for acc in result["accounts"]}
     assert serials == {TEST_ACCOUNT_SERIAL, TEST_ACCOUNT_SERIAL_2}

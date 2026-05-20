@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from .api import Account
 from .const import (
     CONF_DISABLED_ACCOUNTS,
     CONF_SCAN_INTERVAL,
@@ -18,6 +17,7 @@ from .coordinator import OgeroDataUpdateCoordinator
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
+    from .api import Account
     from .data import OgeroConfigEntry
 
 
@@ -28,7 +28,7 @@ def get_update_interval(entry: OgeroConfigEntry) -> timedelta:
     raw = entry.options[CONF_SCAN_INTERVAL]
     try:
         seconds = int(raw)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return DEFAULT_SCAN_INTERVAL
     lo = int(MIN_SCAN_INTERVAL.total_seconds())
     hi = int(MAX_SCAN_INTERVAL.total_seconds())
@@ -44,7 +44,9 @@ def get_disabled_account_serials(entry: OgeroConfigEntry) -> set[str]:
     return {str(x) for x in raw}
 
 
-async def async_fetch_accounts(_hass: HomeAssistant, entry: OgeroConfigEntry) -> list[Account]:
+async def async_fetch_accounts(
+    _hass: HomeAssistant, entry: OgeroConfigEntry
+) -> list[Account]:
     """Return all phone/DSL lines for this login from the Ogero API."""
     client = entry.runtime_data.client
     await client.async_login()

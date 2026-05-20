@@ -217,7 +217,10 @@ class OgeroOptionsFlowHandler(OptionsFlowWithReload):  # type: ignore[misc]
         """Manage options."""
         if user_input is not None:
             new_options = {**dict(self.config_entry.options)}
-            if CONF_SCAN_INTERVAL in user_input and user_input[CONF_SCAN_INTERVAL] is not None:
+            if (
+                CONF_SCAN_INTERVAL in user_input
+                and user_input[CONF_SCAN_INTERVAL] is not None
+            ):
                 raw = user_input[CONF_SCAN_INTERVAL]
                 interval_td = cv.positive_time_period_dict(raw)
                 seconds = _clamp_scan_interval_seconds(int(interval_td.total_seconds()))

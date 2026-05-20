@@ -9,7 +9,7 @@ import pytest
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.ogero.coordinator import OgeroDataUpdateCoordinator
-from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS, OgeroSensor, QUOTA
+from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS, QUOTA, OgeroSensor
 from tests.conftest import TEST_ACCOUNT_SERIAL
 
 if TYPE_CHECKING:
@@ -35,7 +35,9 @@ async def test_sensors(hass: HomeAssistant) -> None:
         == "130.0"
     )
 
-    assert _state_for_unique_id(hass, f"{TEST_ACCOUNT_SERIAL}_extra_consumption") == "5.0"
+    assert (
+        _state_for_unique_id(hass, f"{TEST_ACCOUNT_SERIAL}_extra_consumption") == "5.0"
+    )
 
     balance_id = er.async_get(hass).async_get_entity_id(
         "sensor", "ogero", f"{TEST_ACCOUNT_SERIAL}_outstanding_balance"
@@ -48,7 +50,7 @@ async def test_sensors(hass: HomeAssistant) -> None:
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
 async def test_sensor_stays_available_when_last_poll_failed(
-    _hass: HomeAssistant, loaded_entry: OgeroConfigEntry
+    loaded_entry: OgeroConfigEntry,
 ) -> None:
     """After a failed poll, last snapshot remains; entity stays available."""
     coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]
@@ -62,7 +64,7 @@ async def test_sensor_stays_available_when_last_poll_failed(
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
 async def test_sensor_unavailable_when_coordinator_has_no_data(
-    _hass: HomeAssistant, loaded_entry: OgeroConfigEntry
+    loaded_entry: OgeroConfigEntry,
 ) -> None:
     """Without coordinator data, entity is unavailable."""
     coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]

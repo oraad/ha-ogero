@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from types import MappingProxyType
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -11,7 +10,15 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
 
-from .const import CONF_ACCOUNT, CONFIG_ENTRY_VERSION, DOMAIN, LOGGER, SUBENTRY_TYPE_ACCOUNT
+from .const import (
+    CONF_ACCOUNT,
+    CONFIG_ENTRY_VERSION,
+    CONFIG_ENTRY_VERSION_V1,
+    CONFIG_ENTRY_VERSION_V2,
+    DOMAIN,
+    LOGGER,
+    SUBENTRY_TYPE_ACCOUNT,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -25,7 +32,7 @@ def _username_unique_id(username: str) -> str:
 
 
 def _is_parent_ogero_entry(other: OgeroConfigEntry, username_unique_id: str) -> bool:
-    """True if this config entry is a parent login (v2/v3), not a v1 row."""
+    """Return whether this config entry is a parent login (v2/v3), not a v1 row."""
     return (
         other.domain == DOMAIN
         and other.unique_id == username_unique_id
@@ -216,10 +223,12 @@ async def _migrate_v2_to_v3(hass: HomeAssistant, entry: OgeroConfigEntry) -> Non
         _rehome_entities_v2_to_v3(hass, entry.entry_id, subentry_id_to_serial)
         _rehome_devices_v2_to_v3(hass, entry.entry_id, subentry_id_to_serial)
 
+    for sub_id in list(entry.subentries):
+        hass.config_entries.async_remove_subentry(entry, sub_id)
+
     hass.config_entries.async_update_entry(
         entry,
         version=CONFIG_ENTRY_VERSION,
-        subentries=MappingProxyType({}),
     )
 
 
@@ -228,9 +237,9 @@ async def async_migrate_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> b
     if entry.version > CONFIG_ENTRY_VERSION:
         return False
 
-    if entry.version == 1:
+    if entry.version == CONFIG_ENTRY_VERSION_V1:
         await _migrate_v1_to_v3(hass, entry)
-    elif entry.version == 2:
+    elif entry.version == CONFIG_ENTRY_VERSION_V2:
         await _migrate_v2_to_v3(hass, entry)
 
     return True

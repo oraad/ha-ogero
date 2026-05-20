@@ -10,7 +10,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 
-from .api import Account
 from .entity import OgeroEntity
 
 PARALLEL_UPDATES = 0
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+    from .api import Account
     from .coordinator import OgeroDataUpdateCoordinator
     from .data import OgeroConfigEntry
 

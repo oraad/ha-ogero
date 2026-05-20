@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, MagicMock, patch
 from zoneinfo import ZoneInfo
 
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 TEST_ACCOUNT_SERIAL = "12345|01234567"
 TEST_ACCOUNT_SERIAL_2 = "67890|07654321"
+MOCK_API_ACCOUNT_COUNT = 2
 TEST_USERNAME = "user"
 TEST_PASSWORD = "pass"  # noqa: S105
 

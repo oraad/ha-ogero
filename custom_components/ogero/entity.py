@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .api import Account
 from .const import ATTRIBUTION, DOMAIN, NAME, VERSION
 from .coordinator import OgeroDataUpdateCoordinator
+
+if TYPE_CHECKING:
+    from .api import Account
 
 
 class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):  # type: ignore[misc]
@@ -37,5 +41,5 @@ class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):  # type: ignor
 
     @property
     def available(self) -> bool:
-        """Keep showing the last successful snapshot when a poll fails (UpdateFailed)."""
+        """Show last successful snapshot when a poll fails (UpdateFailed)."""
         return self.coordinator.data is not None
