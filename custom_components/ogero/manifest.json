@@ -10,7 +10,7 @@
   "issue_tracker": "https://github.com/oraad/ha-ogero/issues",
   "quality_scale": "platinum",
   "requirements": [
-    "pyogero==0.13.0"
+    "pyogero==0.14.0"
   ],
   "version": "0.6.0"
 }
