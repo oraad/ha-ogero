@@ -284,8 +284,7 @@ async def test_remove_device_adds_disabled_account(
     device = device_reg.async_get_device(identifiers={(DOMAIN, TEST_ACCOUNT_SERIAL)})
     assert device is not None
 
-    device_reg.async_remove_device(device.id)
-    await hass.async_block_till_done()
+    assert await hass.config_entries.async_remove_config_entry_device(entry, device)
     await hass.async_block_till_done()
 
     entry = hass.config_entries.async_get_entry(entry.entry_id)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from unittest.mock import PropertyMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.helpers import entity_registry as er
@@ -69,11 +69,7 @@ async def test_sensor_unavailable_when_coordinator_has_no_data(
     """Without coordinator data, entity is unavailable."""
     coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]
     desc = next(d for d in ENTITY_DESCRIPTIONS if d.key == QUOTA)
-    with patch.object(
-        OgeroDataUpdateCoordinator,
-        "data",
-        new_callable=PropertyMock,
-        return_value=None,
-    ):
-        sensor = OgeroSensor(coordinator, coordinator.account, desc)
-        assert sensor.available is False
+    empty_coordinator = MagicMock()
+    empty_coordinator.data = None
+    sensor = OgeroSensor(empty_coordinator, coordinator.account, desc)
+    assert sensor.available is False
