@@ -153,6 +153,10 @@ def _mock_api_client(
     mock_client.async_get_bills = AsyncMock(return_value=bill_info)
     with (
         patch(
+            "custom_components.ogero.api.create_api_client",
+            return_value=mock_client,
+        ),
+        patch(
             "custom_components.ogero.config_flow.create_api_client",
             return_value=mock_client,
         ),

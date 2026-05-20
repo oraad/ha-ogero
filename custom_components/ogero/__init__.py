@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
 from homeassistant.loader import async_get_loaded_integration
 
@@ -50,7 +51,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: OgeroConfigEntry) -> boo
     await async_setup_account_coordinators(hass, entry, get_update_interval(entry))
 
     new_keys = set(entry.runtime_data.coordinators)
-    if old_coordinator_keys and new_keys != old_coordinator_keys:
+    if (
+        entry.state == ConfigEntryState.LOADED
+        and old_coordinator_keys
+        and new_keys != old_coordinator_keys
+    ):
         hass.config_entries.async_schedule_reload(entry.entry_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

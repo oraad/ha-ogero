@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from .const import (
     CONF_DISABLED_ACCOUNTS,
@@ -50,7 +50,7 @@ async def async_fetch_accounts(
     """Return all phone/DSL lines for this login from the Ogero API."""
     client = entry.runtime_data.client
     await client.async_login()
-    return await client.async_get_accounts()
+    return cast("list[Account]", await client.async_get_accounts())
 
 
 async def async_setup_account_coordinators(
