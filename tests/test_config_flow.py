@@ -14,6 +14,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.ogero import async_remove_config_entry_device
 from custom_components.ogero.api import (
     OgeroApiClientAuthenticationError,
     OgeroApiClientCommunicationError,
@@ -26,7 +27,6 @@ from custom_components.ogero.const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
 )
-from custom_components.ogero import async_remove_config_entry_device
 from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS
 from tests.conftest import (
     TEST_ACCOUNT_SERIAL,
