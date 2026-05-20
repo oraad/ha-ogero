@@ -136,12 +136,11 @@ def mock_setup_entry() -> AsyncGenerator[AsyncMock]:
         yield mock_setup
 
 
-@pytest.fixture(name="mock_api_client")
-def _mock_api_client(
+def _build_mock_api_client(
     consumption_info: ConsumptionInfo,
     bill_info: BillInfo,
-) -> Iterator[MagicMock]:
-    """Patch API client factory with successful responses."""
+) -> MagicMock:
+    """Return a mock Ogero API client with canned responses."""
     accounts = [
         Account(internet="12345", phone="01234567"),
         Account(internet="67890", phone="07654321"),
@@ -151,21 +150,39 @@ def _mock_api_client(
     mock_client.async_get_accounts = AsyncMock(return_value=accounts)
     mock_client.async_get_consumption = AsyncMock(return_value=consumption_info)
     mock_client.async_get_bills = AsyncMock(return_value=bill_info)
-    with (
-        patch(
-            "custom_components.ogero.api.create_api_client",
-            return_value=mock_client,
-        ),
-        patch(
-            "custom_components.ogero.config_flow.create_api_client",
-            return_value=mock_client,
-        ),
-        patch(
-            "custom_components.ogero.__init__.create_api_client",
-            return_value=mock_client,
-        ),
-    ):
-        yield mock_client
+    return mock_client
+
+
+def _patch_create_api_client(monkeypatch: pytest.MonkeyPatch, mock_client: MagicMock) -> None:
+    """Patch create_api_client at every import site used in tests."""
+
+    def _factory(*_args: object, **_kwargs: object) -> MagicMock:
+        return mock_client
+
+    monkeypatch.setattr(
+        "custom_components.ogero.api.create_api_client",
+        _factory,
+    )
+    monkeypatch.setattr(
+        "custom_components.ogero.config_flow.create_api_client",
+        _factory,
+    )
+    monkeypatch.setattr(
+        "custom_components.ogero.__init__.create_api_client",
+        _factory,
+    )
+
+
+@pytest.fixture(name="mock_api_client")
+def _mock_api_client(
+    consumption_info: ConsumptionInfo,
+    bill_info: BillInfo,
+    monkeypatch: pytest.MonkeyPatch,
+) -> MagicMock:
+    """Patch API client factory with successful responses."""
+    mock_client = _build_mock_api_client(consumption_info, bill_info)
+    _patch_create_api_client(monkeypatch, mock_client)
+    return mock_client
 
 
 @pytest.fixture
