@@ -2,7 +2,7 @@ blueprint:
   name: Ogero - Daily usage summary
   description: >-
     Send a daily notification with total consumption, quota, and outstanding
-    balance for an Ogero phone or DSL line.
+    balance for an Ogero phone|internet line.
   domain: automation
   author: Omar Raad
   homeassistant:

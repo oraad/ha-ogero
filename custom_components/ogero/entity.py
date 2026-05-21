@@ -36,7 +36,7 @@ class OgeroEntity(CoordinatorEntity[OgeroDataUpdateCoordinator]):  # type: ignor
             identifiers={(DOMAIN, serial)},
             name=str(account),
             manufacturer=NAME,
-            model=VERSION,
+            model=serial,
         )
 
     @property

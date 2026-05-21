@@ -47,7 +47,7 @@ def get_disabled_account_serials(entry: OgeroConfigEntry) -> set[str]:
 async def async_fetch_accounts(
     _hass: HomeAssistant, entry: OgeroConfigEntry
 ) -> list[Account]:
-    """Return all phone/DSL lines for this login from the Ogero API."""
+    """Return all phone|internet lines for this login from the Ogero API."""
     client = entry.runtime_data.client
     await client.async_login()
     return cast("list[Account]", await client.async_get_accounts())

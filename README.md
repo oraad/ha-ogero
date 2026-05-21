@@ -36,7 +36,7 @@ Restart Home Assistant after copying files.
 2. Search for **Ogero**.
 3. Enter your My Ogero username and password.
 
-One integration card is created per Ogero login. Every phone or DSL line returned by My Ogero for that login appears as its own device. New lines show up after a reload when Ogero lists them for the account.
+One integration card is created per Ogero login. Every phone|internet line returned by My Ogero for that login appears as its own device. New lines show up after a reload when Ogero lists them for the account.
 
 ### Configuration parameters
 
@@ -68,7 +68,7 @@ This integration uses **cloud polling** (`iot_class: cloud_polling`). Ogero does
 
 - **Default poll interval:** 1 hour (configurable under **Configure → Ogero options**).
 - **Allowed range:** 15 minutes minimum, 24 hours maximum.
-- **Per line:** Each phone or DSL device has its own coordinator; all sensors on that device update together when its poll completes.
+- **Per line:** Each phone|internet device has its own coordinator; all sensors on that device update together when its poll completes.
 - **Availability:** After at least one successful poll, entities **stay available** and keep showing the **last successful** values if a later poll fails (network or portal errors). Diagnostics still report `last_update_success` and any exception for the latest attempt. If you never get a successful poll for a line, entities stay **unavailable** until one succeeds. Use **Reauthenticate** if your My Ogero password changed.
 - **Recommendation:** Avoid very short intervals. Data is fetched via the same web portal as the My Ogero app ([pyogero](https://github.com/oraad/pyogero)); frequent polling adds load on Ogero’s servers without giving true real-time usage.
 
@@ -79,7 +79,7 @@ This integration connects to the **My Ogero** cloud service, not to a specific m
 ### Supported
 
 - Any My Ogero account you can sign in to at [ogero.gov.lb](https://ogero.gov.lb/).
-- Each phone and/or DSL line linked to that account (one Home Assistant device per line).
+- Each phone|internet line linked to that account (one Home Assistant device per line).
 - Multiple usernames (separate integration cards, one per login).
 
 ### Not supported
@@ -167,7 +167,7 @@ Why add Ogero to Home Assistant?
 
 - **Billing alerts** — Notify when **Unpaid bills** turns on or when outstanding balance crosses a threshold you care about.
 - **Quota awareness** — Build dashboard cards for consumption versus quota, or alert when **Over quota** is on before extra charges accumulate.
-- **Multi-line homes** — One login with separate devices per DSL or phone line, each with its own entities and automations.
+- **Multi-line homes** — One login with separate devices per internet|phone line, each with its own entities and automations.
 - **History and trends** — Record usage sensors with the Recorder to compare months or spot unusual spikes.
 - **Wall tablets and voice** — Surface “data used this month” or “any unpaid bills?” on a dashboard or voice assistant.
 
@@ -230,7 +230,7 @@ Adding a line fails with **This account is already configured for this login**.
 
 #### Description
 
-That phone or DSL line is already set up on this integration card.
+That phone|internet line is already set up on this integration card.
 
 #### Resolution
 

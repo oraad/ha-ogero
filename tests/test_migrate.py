@@ -86,7 +86,7 @@ async def test_migrate_v2_to_v3_clears_subentries(hass: HomeAssistant) -> None:
             {
                 "subentry_id": sub_id,
                 "subentry_type": SUBENTRY_TYPE_ACCOUNT,
-                "title": "DSL# 12345 | Phone# 01234567",
+                "title": "Internet# 12345 | Phone# 01234567",
                 "unique_id": TEST_ACCOUNT_SERIAL,
                 "data": {CONF_ACCOUNT: TEST_ACCOUNT_SERIAL},
             },

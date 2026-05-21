@@ -2,7 +2,7 @@ blueprint:
   name: Ogero - Notify on unpaid bills
   description: >-
     Send a notification when the Unpaid bills binary sensor turns on for an
-    Ogero phone or DSL line.
+    Ogero phone or Internet line.
   domain: automation
   author: Omar Raad
   homeassistant:

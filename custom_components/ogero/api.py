@@ -50,11 +50,11 @@ class Account:
     def __str__(self) -> str:
         """To string."""
         if self.phone and self.internet:
-            return f"DSL# {self.internet} | Phone# {self.phone}"
+            return f"Internet# {self.internet} | Phone# {self.phone}"
         if self.phone:
             return f"Phone# {self.phone}"
         if self.internet:
-            return f"DSL# {self.internet}"
+            return f"Internet# {self.internet}"
         return ""
 
     def __repr__(self) -> str:

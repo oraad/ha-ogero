@@ -3,7 +3,7 @@
         "step": {
             "user": {
                 "title": "Connect to Ogero",
-                "description": "Enter your My Ogero credentials. All phone and DSL lines for this login will appear as devices after setup.",
+                "description": "Enter your My Ogero credentials. All phone|internet lines for this login will appear as devices after setup.",
                 "data": {
                     "username": "Username",
                     "password": "Password"

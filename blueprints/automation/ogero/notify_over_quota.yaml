@@ -2,7 +2,7 @@ blueprint:
   name: Ogero - Notify when over quota
   description: >-
     Send a notification when the Over quota binary sensor turns on for an
-    Ogero phone or DSL line.
+    Ogero phone|internet line.
   domain: automation
   author: Omar Raad
   homeassistant:
