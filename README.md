@@ -21,6 +21,14 @@ Powered by [pyogero](https://github.com/oraad/pyogero).
 2. Add the repository URL above and select **Integration** as the category.
 3. Install **Ogero** and restart Home Assistant.
 
+### Open in Home Assistant
+
+Requires [My Home Assistant](https://my.home-assistant.io/) linked to your instance.
+
+[![Open your Home Assistant instance and open this repository in the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=oraad&repository=ha-ogero&category=integration)
+
+[![Open your Home Assistant instance and start setting up the Ogero integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=ogero)
+
 ### Manual
 
 | Parameter | Value |
@@ -287,13 +295,13 @@ Import automations from the blueprint files in this repository:
 2. Go to **Settings → Automations & scenes → Create automation → Create new automation → Use blueprint**.
 3. Select the blueprint and fill in the Ogero entities for your line device.
 
-| Blueprint | Purpose |
-|-----------|---------|
-| [Notify on unpaid bills](blueprints/automation/ogero/notify_unpaid_bills.yaml) | Notification when **Unpaid bills** turns on |
-| [Notify when over quota](blueprints/automation/ogero/notify_over_quota.yaml) | Notification when **Over quota** turns on |
-| [Daily usage summary](blueprints/automation/ogero/daily_usage_summary.yaml) | Scheduled notification with consumption and balance |
+| Blueprint | Purpose | Import |
+|-----------|---------|--------|
+| [Notify on unpaid bills](blueprints/automation/ogero/notify_unpaid_bills.yaml) | Notification when **Unpaid bills** turns on | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import?blueprint_url=https%3A%2F%2Fgithub.com%2Foraad%2Fha-ogero%2Fraw%2Fmain%2Fblueprints%2Fautomation%2Fogero%2Fnotify_unpaid_bills.yaml) |
+| [Notify when over quota](blueprints/automation/ogero/notify_over_quota.yaml) | Notification when **Over quota** turns on | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import?blueprint_url=https%3A%2F%2Fgithub.com%2Foraad%2Fha-ogero%2Fraw%2Fmain%2Fblueprints%2Fautomation%2Fogero%2Fnotify_over_quota.yaml) |
+| [Daily usage summary](blueprints/automation/ogero/daily_usage_summary.yaml) | Scheduled notification with consumption and balance | [![Import blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import?blueprint_url=https%3A%2F%2Fgithub.com%2Foraad%2Fha-ogero%2Fraw%2Fmain%2Fblueprints%2Fautomation%2Fogero%2Fdaily_usage_summary.yaml) |
 
-Each blueprint uses entity selectors filtered to the `ogero` integration so you pick the correct sensors for each line device.
+The Ogero integration must be installed first. After import, pick entities for your line device. Each blueprint uses entity selectors filtered to the `ogero` integration.
 
 ## Development
 
