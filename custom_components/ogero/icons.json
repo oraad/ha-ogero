@@ -4,6 +4,9 @@
       "quota": {
         "default": "mdi:format-quote-close"
       },
+      "usage": {
+        "default": "mdi:gauge"
+      },
       "speed": {
         "default": "mdi:speedometer"
       },

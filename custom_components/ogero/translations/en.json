@@ -60,6 +60,9 @@
             "quota": {
                 "name": "Quota"
             },
+            "usage": {
+                "name": "Quota usage"
+            },
             "speed": {
                 "name": "Speed"
             },

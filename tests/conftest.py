@@ -31,6 +31,7 @@ TEST_ACCOUNT_SERIAL = "12345|01234567"
 TEST_ACCOUNT_SERIAL_2 = "67890|07654321"
 MOCK_API_ACCOUNT_COUNT = 2
 TEST_QUOTA = 500
+TEST_TOTAL_CONSUMPTION = 130.0
 TEST_USERNAME = "user"
 TEST_PASSWORD = "pass"  # noqa: S105
 
@@ -54,7 +55,7 @@ def consumption_info() -> ConsumptionInfo:
     return ConsumptionInfo(
         speed="8 Mbps",
         quota=TEST_QUOTA,
-        total_consumption=130.0,
+        total_consumption=TEST_TOTAL_CONSUMPTION,
         extra_consumption=5.0,
         last_update=datetime(2024, 6, 1, 12, 0, tzinfo=ZoneInfo("Asia/Beirut")),
     )
@@ -75,8 +76,11 @@ def _coordinator_data(
         if bill.status == BillStatus.UNPAID
     ]
     extra_consumption = consumption_info.extra_consumption
+    quota = consumption_info.quota
+    usage = consumption_info.total_consumption / quota * 100 if quota > 0 else None
     return OgeroCoordinatorData(
-        quota=consumption_info.quota,
+        quota=quota,
+        usage=usage,
         last_update=consumption_info.last_update,
         speed=consumption_info.speed,
         total_consumption=consumption_info.total_consumption,

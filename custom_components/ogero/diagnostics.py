@@ -42,6 +42,7 @@ class OgeroDiagnosticsPayload(TypedDict):
 def _coordinator_data_dict(data: OgeroCoordinatorData) -> dict[str, object]:
     return {
         "quota": data.quota,
+        "usage": data.usage,
         "speed": data.speed,
         "total_consumption": data.total_consumption,
         "extra_consumption": data.extra_consumption,

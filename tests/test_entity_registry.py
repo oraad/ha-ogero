@@ -47,7 +47,7 @@ async def test_primary_sensors_enabled_by_default(
 ) -> None:
     """Core usage sensors are enabled by default."""
     assert loaded_entry.entry_id
-    for key in ("total_consumption", "quota", "outstanding_balance"):
+    for key in ("total_consumption", "quota", "usage", "outstanding_balance"):
         reg_entry = _registry_entry(hass, f"{TEST_ACCOUNT_SERIAL}_{key}")
         assert reg_entry is not None
         assert reg_entry.entity_category is None

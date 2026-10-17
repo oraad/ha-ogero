@@ -31,6 +31,7 @@ SPEED = "speed"
 TOTAL_CONSUMPTION = "total_consumption"
 EXTRA_CONSUMPTION = "extra_consumption"
 QUOTA = "quota"
+USAGE = "usage"
 LAST_UPDATE = "last_update"
 OUTSTANDING_BALANCE = "outstanding_balance"
 
@@ -40,6 +41,12 @@ ENTITY_DESCRIPTIONS: tuple[SensorEntityDescription, ...] = (
         translation_key=QUOTA,
         native_unit_of_measurement="GB",
         suggested_display_precision=0,
+    ),
+    SensorEntityDescription(
+        key=USAGE,
+        translation_key=USAGE,
+        native_unit_of_measurement="%",
+        suggested_display_precision=1,
     ),
     SensorEntityDescription(
         key=SPEED,
