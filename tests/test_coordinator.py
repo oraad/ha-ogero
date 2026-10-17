@@ -27,10 +27,10 @@ async def test_usage_is_percentage_of_quota(loaded_entry: OgeroConfigEntry) -> N
 
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
-async def test_usage_is_unknown_for_unlimited_quota(
+async def test_usage_is_zero_for_unlimited_quota(
     loaded_entry: OgeroConfigEntry,
 ) -> None:
-    """Usage is unknown when the quota is unlimited."""
+    """Usage is 0 (not unknown) when the quota is unlimited."""
     coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]
     loaded_entry.runtime_data.client.async_get_consumption = AsyncMock(
         return_value=ConsumptionInfo(
@@ -40,4 +40,4 @@ async def test_usage_is_unknown_for_unlimited_quota(
     await coordinator.async_refresh()
     assert coordinator.data is not None
     assert coordinator.data.quota == "Unlimited"
-    assert coordinator.data.usage is None
+    assert coordinator.data.usage == 0.0

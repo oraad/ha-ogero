@@ -26,7 +26,7 @@ class OgeroCoordinatorData:
     """Data returned by the coordinator."""
 
     quota: float | str
-    usage: float | None
+    usage: float
     speed: str
     total_consumption: float
     extra_consumption: float
@@ -92,10 +92,12 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  
         extra_consumption = consumption.extra_consumption
         quota_value = consumption.quota
         quota = UNLIMITED_QUOTA if math.isinf(quota_value) else quota_value
+        # An unlimited quota has no meaningful percentage; report 0 so numeric
+        # consumers (e.g. gauge cards) still receive a number.
         usage = (
             consumption.total_consumption / quota_value * 100
             if quota_value > 0 and not math.isinf(quota_value)
-            else None
+            else 0.0
         )
 
         return OgeroCoordinatorData(

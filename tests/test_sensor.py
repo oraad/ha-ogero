@@ -56,18 +56,18 @@ async def test_usage_sensor_reports_percentage(hass: HomeAssistant) -> None:
 
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
-async def test_usage_sensor_unknown_when_unlimited(
+async def test_usage_sensor_zero_when_unlimited(
     hass: HomeAssistant,
     loaded_entry: OgeroConfigEntry,
 ) -> None:
-    """Usage is unknown when the plan has no finite quota."""
+    """Usage is 0 (not unknown) when the plan has no finite quota."""
     coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]
     assert coordinator.data is not None
     coordinator.async_set_updated_data(
-        replace(coordinator.data, quota=UNLIMITED_QUOTA, usage=None)
+        replace(coordinator.data, quota=UNLIMITED_QUOTA, usage=0.0)
     )
     await hass.async_block_till_done()
-    assert _state_for_unique_id(hass, f"{TEST_ACCOUNT_SERIAL}_usage") == "unknown"
+    assert _state_for_unique_id(hass, f"{TEST_ACCOUNT_SERIAL}_usage") == "0.0"
 
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")

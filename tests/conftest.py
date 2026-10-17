@@ -77,7 +77,7 @@ def _coordinator_data(
     ]
     extra_consumption = consumption_info.extra_consumption
     quota = consumption_info.quota
-    usage = consumption_info.total_consumption / quota * 100 if quota > 0 else None
+    usage = consumption_info.total_consumption / quota * 100 if quota > 0 else 0.0
     return OgeroCoordinatorData(
         quota=quota,
         usage=usage,
