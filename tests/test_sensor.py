@@ -71,6 +71,27 @@ async def test_usage_sensor_zero_when_unlimited(
 
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
+async def test_usage_sensor_exposes_quota_is_unlimited(
+    hass: HomeAssistant,
+    loaded_entry: OgeroConfigEntry,
+) -> None:
+    """Usage sensor exposes a quota_is_unlimited attribute."""
+    coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]
+    assert coordinator.data is not None
+    usage_id = er.async_get(hass).async_get_entity_id(
+        "sensor", "ogero", f"{TEST_ACCOUNT_SERIAL}_usage"
+    )
+    assert usage_id is not None
+    assert hass.states.get(usage_id).attributes["quota_is_unlimited"] is False
+
+    coordinator.async_set_updated_data(
+        replace(coordinator.data, quota=UNLIMITED_QUOTA, usage=0.0)
+    )
+    await hass.async_block_till_done()
+    assert hass.states.get(usage_id).attributes["quota_is_unlimited"] is True
+
+
+@pytest.mark.usefixtures("mock_api_client", "loaded_entry")
 async def test_sensor_stays_available_when_last_poll_failed(
     loaded_entry: OgeroConfigEntry,
 ) -> None:

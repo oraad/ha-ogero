@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import (
     SensorEntity,
@@ -154,11 +154,13 @@ class OgeroSensor(
         return cast("int | None", self.entity_description.suggested_display_precision)
 
     @property
-    def extra_state_attributes(self) -> dict[str, list[dict[str, str]]] | None:
+    def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return extra state attributes."""
-        if self.entity_description.key != OUTSTANDING_BALANCE:
-            return None
         data = self.coordinator.data
-        if data is None or not data.unpaid_bills:
+        if data is None:
             return None
-        return {"unpaid_bills": data.unpaid_bills}
+        if self.entity_description.key == OUTSTANDING_BALANCE and data.unpaid_bills:
+            return {"unpaid_bills": data.unpaid_bills}
+        if self.entity_description.key == USAGE:
+            return {"quota_is_unlimited": data.quota == UNLIMITED_QUOTA}
+        return None
