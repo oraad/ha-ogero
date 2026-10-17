@@ -282,7 +282,15 @@ async def test_remove_device_adds_disabled_account(
     """Deleting a line device stores its serial in disabled_accounts."""
     entry = loaded_entry
     device_reg = dr.async_get(hass)
-    device = device_reg.async_get_device(identifiers={(DOMAIN, TEST_ACCOUNT_SERIAL)})
+    if hasattr(device_reg, "async_get_device_by_identifier"):
+        # `async_get_device` is deprecated in newer Home Assistant versions.
+        device = device_reg.async_get_device_by_identifier(
+            (DOMAIN, TEST_ACCOUNT_SERIAL), entry.entry_id
+        )
+    else:
+        device = device_reg.async_get_device(
+            identifiers={(DOMAIN, TEST_ACCOUNT_SERIAL)}
+        )
     assert device is not None
 
     assert await async_remove_config_entry_device(hass, entry, device)

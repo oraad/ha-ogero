@@ -89,11 +89,7 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  
             bill.status == BillStatus.UNPAID for bill in bill_info.bills
         )
         extra_consumption = consumption.extra_consumption
-        quota = (
-            UNLIMITED_QUOTA
-            if math.isinf(consumption.quota)
-            else consumption.quota
-        )
+        quota = UNLIMITED_QUOTA if math.isinf(consumption.quota) else consumption.quota
 
         return OgeroCoordinatorData(
             quota=quota,

@@ -11,7 +11,7 @@ from homeassistant.helpers import entity_registry as er
 
 from custom_components.ogero.const import UNLIMITED_QUOTA
 from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS, QUOTA, OgeroSensor
-from tests.conftest import TEST_ACCOUNT_SERIAL
+from tests.conftest import TEST_ACCOUNT_SERIAL, TEST_QUOTA
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -88,15 +88,13 @@ async def test_quota_sensor_shows_unlimited_text(
     sensor = OgeroSensor(coordinator, coordinator.account, desc)
 
     # Numeric quota keeps the GB unit and display precision.
-    assert sensor.native_value == 500
+    assert sensor.native_value == TEST_QUOTA
     assert sensor.native_unit_of_measurement == "GB"
     assert sensor.suggested_display_precision == 0
 
     # Unlimited plan shows text and drops the numeric unit/precision so Home
     # Assistant accepts the non-numeric state.
-    coordinator.async_set_updated_data(
-        replace(coordinator.data, quota=UNLIMITED_QUOTA)
-    )
+    coordinator.async_set_updated_data(replace(coordinator.data, quota=UNLIMITED_QUOTA))
     await hass.async_block_till_done()
     assert sensor.native_value == "Unlimited"
     assert sensor.native_unit_of_measurement is None
