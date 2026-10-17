@@ -78,6 +78,7 @@ async def test_sensor_unavailable_when_coordinator_has_no_data(
 
 @pytest.mark.usefixtures("mock_api_client", "loaded_entry")
 async def test_quota_sensor_shows_unlimited_text(
+    hass: HomeAssistant,
     loaded_entry: OgeroConfigEntry,
 ) -> None:
     """Quota sensor displays 'Unlimited' and drops the GB unit when unlimited."""
@@ -86,13 +87,18 @@ async def test_quota_sensor_shows_unlimited_text(
     desc = next(d for d in ENTITY_DESCRIPTIONS if d.key == QUOTA)
     sensor = OgeroSensor(coordinator, coordinator.account, desc)
 
-    # Numeric quota keeps the GB unit.
+    # Numeric quota keeps the GB unit and display precision.
     assert sensor.native_value == 500
     assert sensor.native_unit_of_measurement == "GB"
+    assert sensor.suggested_display_precision == 0
 
-    # Unlimited plan shows text and no unit.
+    # Unlimited plan shows text and drops the numeric unit/precision so Home
+    # Assistant accepts the non-numeric state.
     coordinator.async_set_updated_data(
         replace(coordinator.data, quota=UNLIMITED_QUOTA)
     )
+    await hass.async_block_till_done()
     assert sensor.native_value == "Unlimited"
     assert sensor.native_unit_of_measurement is None
+    assert sensor.suggested_display_precision is None
+    assert _state_for_unique_id(hass, f"{TEST_ACCOUNT_SERIAL}_quota") == "Unlimited"

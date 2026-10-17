@@ -118,15 +118,32 @@ class OgeroSensor(
         return cast("OgeroSensorValue", getattr(data, self.entity_description.key))
 
     @property
-    def native_unit_of_measurement(self) -> str | None:
-        """Drop the GB unit when the quota is unlimited."""
-        if (
+    def _is_unlimited_quota(self) -> bool:
+        """Return True for the quota sensor when the plan is unlimited."""
+        return (
             self.entity_description.key == QUOTA
             and self.coordinator.data is not None
             and self.coordinator.data.quota == UNLIMITED_QUOTA
-        ):
+        )
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Drop the GB unit when the quota is unlimited."""
+        if self._is_unlimited_quota:
             return None
         return self.entity_description.native_unit_of_measurement
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Drop display precision when the quota is unlimited.
+
+        Home Assistant requires a numeric state whenever a unit or display
+        precision is set, so both must be cleared to expose the "Unlimited"
+        text state.
+        """
+        if self._is_unlimited_quota:
+            return None
+        return self.entity_description.suggested_display_precision
 
     @property
     def extra_state_attributes(self) -> dict[str, list[dict[str, str]]] | None:

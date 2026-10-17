@@ -2,7 +2,7 @@
 colorlog==6.11.0
 homeassistant==2026.3.2
 pip>=26.1.2
-pyogero==0.14.2
+pyogero==0.14.3
 pytest-homeassistant-custom-component==0.13.318
 pytest-timeout==2.4.0
 ruff==0.15.22
