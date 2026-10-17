@@ -12,6 +12,7 @@ from homeassistant.components.sensor import (
 from homeassistant.components.sensor.const import SensorDeviceClass
 from homeassistant.helpers.entity import EntityCategory
 
+from .const import UNLIMITED_QUOTA
 from .entity import OgeroEntity
 
 PARALLEL_UPDATES = 0
@@ -115,6 +116,17 @@ class OgeroSensor(
         if data is None:
             return None
         return cast("OgeroSensorValue", getattr(data, self.entity_description.key))
+
+    @property
+    def native_unit_of_measurement(self) -> str | None:
+        """Drop the GB unit when the quota is unlimited."""
+        if (
+            self.entity_description.key == QUOTA
+            and self.coordinator.data is not None
+            and self.coordinator.data.quota == UNLIMITED_QUOTA
+        ):
+            return None
+        return self.entity_description.native_unit_of_measurement
 
     @property
     def extra_state_attributes(self) -> dict[str, list[dict[str, str]]] | None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -10,7 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from pyogero.types import BillStatus
 
 from .api import Account, OgeroApiClientAuthenticationError, OgeroApiClientError
-from .const import DOMAIN, LOGGER
+from .const import DOMAIN, LOGGER, UNLIMITED_QUOTA
 
 if TYPE_CHECKING:
     from datetime import datetime, timedelta
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
 class OgeroCoordinatorData:
     """Data returned by the coordinator."""
 
-    quota: int
+    quota: float | str
     speed: str
     total_consumption: float
     extra_consumption: float
@@ -88,9 +89,14 @@ class OgeroDataUpdateCoordinator(DataUpdateCoordinator[OgeroCoordinatorData]):  
             bill.status == BillStatus.UNPAID for bill in bill_info.bills
         )
         extra_consumption = consumption.extra_consumption
+        quota = (
+            UNLIMITED_QUOTA
+            if math.isinf(consumption.quota)
+            else consumption.quota
+        )
 
         return OgeroCoordinatorData(
-            quota=consumption.quota,
+            quota=quota,
             last_update=consumption.last_update,
             speed=consumption.speed,
             total_consumption=consumption.total_consumption,

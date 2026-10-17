@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.helpers import entity_registry as er
 
+from custom_components.ogero.const import UNLIMITED_QUOTA
 from custom_components.ogero.sensor import ENTITY_DESCRIPTIONS, QUOTA, OgeroSensor
 from tests.conftest import TEST_ACCOUNT_SERIAL
 
@@ -72,3 +74,25 @@ async def test_sensor_unavailable_when_coordinator_has_no_data(
     empty_coordinator.data = None
     sensor = OgeroSensor(empty_coordinator, coordinator.account, desc)
     assert sensor.available is False
+
+
+@pytest.mark.usefixtures("mock_api_client", "loaded_entry")
+async def test_quota_sensor_shows_unlimited_text(
+    loaded_entry: OgeroConfigEntry,
+) -> None:
+    """Quota sensor displays 'Unlimited' and drops the GB unit when unlimited."""
+    coordinator = loaded_entry.runtime_data.coordinators[TEST_ACCOUNT_SERIAL]
+    assert coordinator.data is not None
+    desc = next(d for d in ENTITY_DESCRIPTIONS if d.key == QUOTA)
+    sensor = OgeroSensor(coordinator, coordinator.account, desc)
+
+    # Numeric quota keeps the GB unit.
+    assert sensor.native_value == 500
+    assert sensor.native_unit_of_measurement == "GB"
+
+    # Unlimited plan shows text and no unit.
+    coordinator.async_set_updated_data(
+        replace(coordinator.data, quota=UNLIMITED_QUOTA)
+    )
+    assert sensor.native_value == "Unlimited"
+    assert sensor.native_unit_of_measurement is None

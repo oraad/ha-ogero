@@ -43,3 +43,5 @@ NAME = manifest.get("name")
 DOMAIN = manifest.get("domain")
 VERSION = manifest.get("version")
 ATTRIBUTION = "Data retrieved from https://ogero.gov.lb/"
+
+UNLIMITED_QUOTA = "Unlimited"
